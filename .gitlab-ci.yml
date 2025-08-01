@@ -1,0 +1,17 @@
+# Pipeline CI/CD GitLab
+stages:
+  - build
+  - deploy
+
+build:
+  stage: build
+  script:
+    - echo "Build OK"
+
+deploy:
+  stage: deploy
+  script:
+    - docker-compose down || true
+    - docker-compose up -d --build
+  only:
+    - main

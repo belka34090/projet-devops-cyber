@@ -1,0 +1,9 @@
+# Lance ton conteneur avec le fichier HTML servi par Nginx
+version: '3.8'
+services:
+  site:
+    build: .
+    container_name: devops-cyber-site
+    ports:
+      - "8080:80"
+    restart: unless-stopped
