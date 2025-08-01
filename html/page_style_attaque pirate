@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Erreur - Site Non Sécurisé</title>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #1f1f1f;
+            color: #e74c3c;
+            text-align: center;
+            padding: 0;
+            margin: 0;
+            position: relative;
+        }
+
+        /* Effet de fond pour simuler un écran piraté */
+        ::before {
+            content: "";
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: url('https://example.com/hacker-background.gif') no-repeat center center fixed; /* Remplacer par un fond gif glitch */
+            background-size: cover;
+            opacity: 0.4;
+            z-index: -1;
+            animation: glitch 2s infinite linear;
+        }
+
+        /* Animation de glitch */
+        @keyframes glitch {
+            0% {
+                transform: translate(0, 0);
+                opacity: 0.8;
+            }
+            25% {
+                transform: translate(-2px, 2px);
+                opacity: 1;
+            }
+            50% {
+                transform: translate(2px, -2px);
+                opacity: 0.8;
+            }
+            75% {
+                transform: translate(-2px, 2px);
+                opacity: 1;
+            }
+            100% {
+                transform: translate(0, 0);
+                opacity: 0.8;
+            }
+        }
+
+        /* Conteneur d'alerte */
+        .error-message {
+            font-size: 2.5em;
+            margin: 50px 20px;
+            padding: 30px;
+            background-color: #c0392b;
+            border-radius: 10px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.7);
+            animation: shake 0.5s infinite;
+        }
+
+        /* Animation de secousse */
+        @keyframes shake {
+            0% {
+                transform: translateX(0);
+            }
+            25% {
+                transform: translateX(-5px);
+            }
+            50% {
+                transform: translateX(5px);
+            }
+            75% {
+                transform: translateX(-5px);
+            }
+            100% {
+                transform: translateX(0);
+            }
+        }
+
+        h1 {
+            font-size: 2.5em;
+            margin: 20px 0;
+        }
+
+        p {
+            font-size: 1.2em;
+            margin-bottom: 20px;
+        }
+
+        .btn {
+            background-color: #34495e;
+            color: white;
+            padding: 15px 30px;
+            font-size: 1.5em;
+            text-decoration: none;
+            border-radius: 5px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.3);
+            margin-top: 40px;
+            position: relative;
+            z-index: 1;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover {
+            background-color: #2c3e50;
+            transform: scale(1.05);
+        }
+
+        /* Fenêtre pop-up d'alerte */
+        .popup {
+            position: absolute;
+            top: 20%;
+            left: 50%;
+            transform: translateX(-50%);
+            background-color: #e74c3c;
+            color: white;
+            padding: 25px;
+            border-radius: 10px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.7);
+            display: block;
+            font-size: 1.2em;
+            animation: fadeIn 1s ease-out;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Texte clignotant pour effet d'urgence */
+        .urgent {
+            font-size: 2em;
+            font-weight: bold;
+            color: #ffdb58;
+            animation: blink 1s step-end infinite;
+        }
+
+        @keyframes blink {
+            50% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="popup">
+        <p class="urgent">ATTENTION ! Votre appareil est compromis.</p>
+        <p><strong>Ce site semble avoir été piraté et vos informations personnelles sont en danger. </strong>Il est conseillé de ne pas interagir avec cette page. Vérifiez immédiatement la sécurité de vos comptes en ligne !</p>
+    </div>
+
+    <div class="error-message">
+        <h1>ERREUR ! Ce site semble être compromis.</h1>
+        <p>Une tentative d'attaque a été détectée sur cette page. Il est crucial de ne pas entrer vos informations personnelles. Un malware a peut-être déjà été installé.</p>
+        <p>Votre sécurité en ligne est menacée. Cliquez ci-dessous pour plus d'informations.</p>
+        <a href="vidéo explicative faux site 2.html" class="btn">Voir la vidéo explicative</a>
+    </div>
+
+    <!-- Simuler des alertes supplémentaires -->
+    <div class="popup" style="top: 40%;"> 
+        <p>Des activités suspectes ont été détectées sur votre compte. <strong>Votre connexion peut être compromise !</strong></p>
+    </div>
+
+</body>
+</html>
+
