@@ -1,0 +1,120 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Quiz de Sensibilisation Cybersécurité</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"> 
+    <style>
+        body { font-family: 'Roboto', Arial, sans-serif; background: #f3f7fb; margin: 0; }
+        .quiz-container { max-width: 600px; background: #fff; margin: 48px auto; border-radius: 15px; box-shadow: 0 4px 16px rgba(0,0,0,0.10); padding: 45px 32px;}
+        .quiz-title { color: #27C0D4; font-size: 2em; margin-bottom: 24px; font-weight: bold;}
+        .question { margin: 24px 0 10px 0; font-size: 1.18em; color: #23245c;}
+        .answers label { display: block; margin-bottom: 8px; font-size: 1.04em; color: #222;}
+        .submit-btn, .retry-btn, .next-btn {
+            background: #27C0D4; color: #fff; border: none; font-size: 1.12em; font-weight: bold; padding: 14px 0;
+            border-radius: 7px; width: 100%; margin-top: 32px; cursor: pointer; transition: background 0.2s; 
+            display: block; text-align: center; text-decoration: none;
+        }
+        .submit-btn:hover, .retry-btn:hover, .next-btn:hover { background: #178899; }
+        .result { text-align: center; margin: 26px 0 0 0; font-size: 1.25em;}
+        .result.success { color: #28a745; font-weight: bold; }
+        .result.fail { color: #d32636; font-weight: bold; }
+        .explain { margin-top: 30px; padding: 18px 18px 4px 18px; background: #f4fcff; border-radius: 7px; font-size: 1em; color: #134861;}
+        .explain strong { color: #27C0D4;}
+    </style>
+    <script>
+      function corrigerQuiz(event) {
+        event.preventDefault();
+        let score = 0;
+        let q1 = document.querySelector('input[name="q1"]:checked')?.value;
+        let q2 = document.querySelector('input[name="q2"]:checked')?.value;
+        let q3 = document.querySelector('input[name="q3"]:checked')?.value;
+
+        if (q1 === "b") score++;
+        if (q2 === "a") score++;
+        if (q3 === "c") score++;
+
+        let result = document.getElementById("result");
+        let explanations = document.getElementById("explanations");
+        let retry = document.getElementById("retry");
+        let next = document.getElementById("next");
+
+        document.querySelector('.submit-btn').style.display = 'none';
+
+        if (score === 3) {
+          result.textContent = "Bravo ! Vous avez réussi le quiz !";
+          result.className = "result success";
+          explanations.innerHTML = `
+            <strong>Réponses et explications :</strong><br>
+            1️⃣ <b>Je vérifie l’adresse de l’expéditeur et l’URL du lien avant toute action.</b><br>
+            2️⃣ <b>Je contacte le service concerné pour vérifier l’authenticité avant d’ouvrir le fichier.</b
+><br>
+            3️⃣ <b>Je ne rentre rien et je préviens la DSI.</b>
+          `;
+          retry.style.display = 'none';
+          next.style.display = 'block';
+          setTimeout(() => { window.location.href="video_1.html"; }, 2500);
+        } else {
+          result.textContent = `Vous avez eu ${score}/3 bonnes réponses.`;
+          result.className = "result fail";
+          explanations.innerHTML = `
+            <strong>Réponses et explications :</strong><br>
+            1️⃣ Il ne faut jamais cliquer sans vérifier l'adresse expéditeur/lien.<br>
+            2️⃣ Toujours vérifier la légitimité avant d’ouvrir une pièce jointe.<br>
+            3️⃣ Ne saisissez jamais vos infos sur un site “Non sécurisé”, alertez la DSI.
+          `;
+          retry.style.display = 'block';
+          next.style.display = 'none';
+        }
+      }
+      function recommencer() {
+        window.location.reload();
+      }
+    </script>
+</head>
+<body>
+<div class="quiz-container">
+    <div class="quiz-title">Quiz de Sensibilisation</div>
+    <form onsubmit="corrigerQuiz(event)">
+        <div class="question">
+            1️⃣ Un mail vous demande de mettre à jour vos identifiants Edenred via un lien. Que faites-vous ?
+        </div>
+        <div class="answers">
+            <label><input type="radio" name="q1" value="a" required> Je clique sans vérifier, c’est sûrement 
+urgent.</label>
+            <label><input type="radio" name="q1" value="b"> Je vérifie l’adresse de l’expéditeur et l’URL du 
+lien avant toute action.</label>
+            <label><input type="radio" name="q1" value="c"> Je transfère le mail à mes collègues pour qu’ils 
+cliquent aussi.</label>
+        </div>
+
+        <div class="question">
+            2️⃣ Vous recevez un mail avec un fichier joint inattendu, mais provenant d’un “service informatiq
+ue”. Que faire ?
+        </div>
+        <div class="answers">
+            <label><input type="radio" name="q2" value="a" required> Je contacte le service concerné pour vérifier l’authenticité avant d’ouvrir le fichier.</label>
+            <label><input type="radio" name="q2" value="b"> J’ouvre le fichier pour aller plus vite.</label> 
+            <label><input type="radio" name="q2" value="c"> J’efface le mail sans prévenir personne.</label> 
+        </div>
+
+        <div class="question">
+            3️⃣ Le site où vous devez saisir votre mot de passe affiche “Non sécurisé” dans le navigateur. Qu
+e faire ?
+        </div>
+        <div class="answers">
+            <label><input type="radio" name="q3" value="a" required> Je rentre mes infos quand même, tant pis.</label>
+            <label><input type="radio" name="q3" value="b"> J’appelle Edenred pour leur signaler le bug.</label>
+            <label><input type="radio" name="q3" value="c"> Je ne rentre rien et je préviens la DSI.</label> 
+        </div>
+
+        <button type="submit" class="submit-btn">Valider mes réponses</button>
+    </form>
+    <div id="result" class="result"></div>
+    <div id="explanations" class="explain"></div>
+    <button id="retry" class="retry-btn" style="display:none;" onclick="recommencer()">Reprendre le quiz</button>
+    <a id="next" class="next-btn" style="display:none;" href="video_1.html">Voir la vidéo explicative</a>    
+</div>
+</body>
+</html>

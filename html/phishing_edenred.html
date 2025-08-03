@@ -1,0 +1,160 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Edenred Ticket Restaurant – Mise à jour sécurité</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
+    <style>
+        body {
+            background: #f2f8fc;
+            font-family: 'Roboto', Arial, sans-serif;
+            margin: 0;
+        }
+        .container {
+            max-width: 600px;
+            margin: 32px auto;
+            background: #fff;
+            border-radius: 18px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.10);
+            overflow: hidden;
+        }
+        .header {
+            background: #27C0D4;
+            color: #fff;
+            border-radius: 18px 18px 0 0;
+            padding: 28px 28px 20px 28px;
+            display: flex;
+            justify-content: space-between;
+            align-items: flex-start;
+        }
+        .logo-txt {
+            display: flex;
+            align-items: center;
+        }
+        .logo-txt img {
+            width: 36px;
+            margin-right: 8px;
+        }
+        .header-title {
+            font-size: 2em;
+            font-weight: bold;
+            line-height: 1.1;
+        }
+        .header-id {
+            font-size: 1em;
+            text-align: right;
+            min-width: 220px;
+            margin-top: 7px;
+        }
+        .content {
+            padding: 36px 36px 20px 36px;
+            color: #22294d;
+            font-size: 1.12em;
+        }
+        .content b, .content strong { color: #161c30;}
+        .alert {
+            font-weight: bold;
+            color: #222;
+            font-size: 1.12em;
+        }
+        .main-btn {
+            display: block;
+            width: 80%;
+            margin: 32px auto 18px auto;
+            padding: 20px 0;
+            background: #e7464c;
+            color: #fff;
+            border: none;
+            border-radius: 12px;
+            font-size: 1.18em;
+            font-weight: bold;
+            text-align: center;
+            box-shadow: 0 4px 14px rgba(240,0,0,0.11);
+            cursor: pointer;
+            text-decoration: none;
+            transition: background 0.18s;
+        }
+        .main-btn:hover { background: #c31d23; }
+        .tips {
+            background: none;
+            padding: 0;
+            margin: 0 0 18px 0;
+            font-size: 1.09em;
+        }
+        .tips b { color: #e7a20c; }
+        .tips span { color: #373737;}
+        .footer {
+            background: #f6fbfe;
+            color: #8597a3;
+            font-size: 0.97em;
+            padding: 22px 34px 12px 34px;
+            border-radius: 0 0 18px 18px;
+        }
+        .footer a { color: #27C0D4; text-decoration: underline; }
+        .continue-btn {
+            display: block;
+            background: #27C0D4;
+            color: #fff;
+            border-radius: 10px;
+            font-size: 1.08em;
+            font-weight: bold;
+            padding: 16px 0;
+            margin: 24px auto 0 auto;
+            width: 80%;
+            text-align: center;
+            text-decoration: none;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.07);
+            transition: background 0.18s;
+        }
+        .continue-btn:hover { background: #1a96a3; }
+        @media (max-width: 700px) {
+            .container { padding-bottom: 0; }
+            .header { flex-direction: column; align-items: flex-start; padding: 20px 10px 12px 10px;}        
+            .content { padding: 22px 10px 12px 10px;}
+            .footer { padding: 16px 12px 10px 12px;}
+            .main-btn, .continue-btn { width: 96%; }
+            .header-id { min-width: unset;}
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo-txt">
+                <img src="https://www.edenred.fr/sites/default/files/2021-07/logo-edenred.png" alt="Logo Edenred">
+                <span class="header-title">Edenred Ticket<br>Restaurant</span>
+            </div>
+            <div class="header-id">
+                Identifiant&nbsp;: <span style="font-weight: 400;">b.prenom@mairie-castelnau.fr</span>       
+            </div>
+        </div>
+        <div class="content">
+            Bonjour,<br><br>
+            Suite à la <b style="color:#1e9fc2;">mise à jour de sécurité du 2 août 2025</b> et dans le cadre 
+de la conformité RGPD, nous vous demandons de <b>confirmer vos informations pour continuer à bénéficier de votre carte Ticket Restaurant Edenred.</b>
+            <br><br>
+            <span class="alert" style="color:#23223e;">
+                Sans validation sous 24h, votre carte sera temporairement suspendue à partir du 04/08/2025.  
+            </span>
+            <br><br>
+            Pour éviter toute interruption de service, <b>merci de cliquer sur le bouton ci-dessous et de suivre les étapes.</b>
+            <a href="login_edenred.html" class="main-btn">
+                Mettre à jour mes informations
+            </a>
+            <div class="tips">
+                <b>Le saviez-vous ?</b>
+                <span>Les cybercriminels imitent Edenred pour voler vos données. Restez vigilant face aux demandes inhabituelles.</span>
+            </div>
+        </div>
+        <a href="quiz_cyber.html" class="continue-btn">
+            Continuer pour poursuivre la sensibilisation
+        </a>
+        <div class="footer">
+            Cet e-mail a été envoyé par : <span style="color:#e7464c; font-weight:700;">noreply@edenred-services.fr</span> (ne pas répondre)<br>
+            Pour toute question, contactez votre gestionnaire ou rendez-vous sur <a href="https://www.edenred.fr">edenred.fr</a>.<br>
+            Edenred France © 2025 — Ceci est une simulation pédagogique.
+        </div>
+    </div>
+</body>
+</html>
