@@ -16,6 +16,18 @@ const dbConfig = {
   database: "campagne",
 };
 
+// Endpoint GET pour récupérer tous les agents (test simple)
+app.get("/api/agents", async (req, res) => {
+  try {
+    const conn = await mysql.createConnection(dbConfig);
+    const [rows] = await conn.execute("SELECT * FROM agents");
+    await conn.end();
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
 // Authentifier un agent
 app.post("/api/login", async (req, res) => {
   const { matricule, code } = req.body;
@@ -51,7 +63,7 @@ app.post("/api/activities", async (req, res) => {
     }
     const agent_id = rows[0].id;
     await conn.execute(
-      "INSERT INTO activities (agent_id, action, details) VALUES (?, ?, ?)",
+      "INSERT INTO activities (agent_id, type_activite, details) VALUES (?, ?, ?)",
       [agent_id, action, details]
     );
     await conn.end();
@@ -71,8 +83,7 @@ app.get("/api/activities/:matricule", async (req, res) => {
        FROM activities a
        JOIN agents ag ON a.agent_id = ag.id
        WHERE ag.matricule = ?
-       ORDER BY a.date DESC
-       `,
+       ORDER BY a.date_heure DESC`,
       [matricule]
     );
     await conn.end();
@@ -82,6 +93,6 @@ app.get("/api/activities/:matricule", async (req, res) => {
   }
 });
 
-app.listen(5000, () => {
+app.listen(5000, "0.0.0.0", () => {
   console.log("API Node.js listening on port 5000");
 });
