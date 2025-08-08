@@ -1,9 +1,9 @@
-// backend/API_Node.js
+// backend/API_Node.js (VERSION CommonJS)
 
-import express from "express";
-import mysql from "mysql2/promise";
-import bodyParser from "body-parser";
-import cors from "cors";
+const express = require("express");
+const mysql = require("mysql2/promise");
+const bodyParser = require("body-parser");
+const cors = require("cors");
 
 const app = express();
 app.use(cors());
@@ -16,7 +16,7 @@ const dbConfig = {
   database: "campagne",
 };
 
-// Endpoint GET pour récupérer tous les agents (test simple)
+// Endpoint GET pour récupérer tous les agents
 app.get("/api/agents", async (req, res) => {
   try {
     const conn = await mysql.createConnection(dbConfig);
@@ -73,7 +73,24 @@ app.post("/api/activities", async (req, res) => {
   }
 });
 
-// Récupérer toutes les activités d’un agent
+// ✅ Endpoint admin — toutes les activités de tous les agents (en premier)
+app.get("/api/activities", async (req, res) => {
+  try {
+    const conn = await mysql.createConnection(dbConfig);
+    const [rows] = await conn.execute(`
+      SELECT a.*, ag.nom, ag.service, ag.matricule
+      FROM activities a
+      JOIN agents ag ON a.agent_id = ag.id
+      ORDER BY a.date_heure DESC
+    `);
+    await conn.end();
+    res.json(rows);
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+});
+
+// Ensuite la route par matricule !
 app.get("/api/activities/:matricule", async (req, res) => {
   const matricule = req.params.matricule;
   try {

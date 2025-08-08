@@ -11,6 +11,15 @@
             font-family: 'Roboto', Arial, sans-serif;
             margin: 0;
         }
+        .top-bar {
+            background: linear-gradient(135deg, #27C0D4, #178899);
+            color: #fff;
+            padding: 16px 0;
+            text-align: right;
+            font-size: 1.1em;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
         .container {
             max-width: 760px;
             margin: 38px auto;
@@ -66,12 +75,53 @@
     </style>
 </head>
 <body>
+    <div class="top-bar" id="agent-bar"></div>
     <div class="container">
         <h1>Vidéo explicative : reconnaître un e-mail de phishing</h1>
         <div class="video-container">
             <iframe src="https://www.youtube.com/embed/vz-KTKAGb4g?start=41" allowfullscreen title="Vidéo explicative – Reconnaître un e-mail de phishing"></iframe>
         </div>
-        <a href="quiz_cyber2.html" class="next-btn">Poursuivre la sensibilisation</a>
+        <a href="quiz_cyber2.html" class="next-btn" id="btn-continuer">Poursuivre la sensibilisation</a>     
     </div>
+    <script>
+    let startTime, agent;
+    document.addEventListener('DOMContentLoaded', () => {
+        agent = JSON.parse(localStorage.getItem('agent') || 'null');
+        const agentBar = document.getElementById('agent-bar');
+        if (agent && agent.nom && agent.service) {
+            agentBar.textContent = `  ${agent.nom} (${agent.service})`;
+        } else {
+            window.location.href = 'login.html';
+        }
+        // Log visite vidéo
+        fetch('http://128.251.40.169:5000/api/activities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                matricule: agent.matricule,
+                action: 'video_1_visite',
+                details: 'L’agent a ouvert la page vidéo sur le phishing.'
+            })
+        });
+        startTime = Date.now();
+
+        document.getElementById('btn-continuer').addEventListener('click', function(e){
+            e.preventDefault();
+            const durationSec = Math.round((Date.now() - startTime) / 1000);
+            fetch('http://128.251.40.169:5000/api/activities', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    matricule: agent.matricule,
+                    action: 'video_1_validation',
+                    details: `L’agent a cliqué pour poursuivre la sensibilisation après ${durationSec} secondes.`
+                })
+            });
+            setTimeout(() => {
+                window.location.href = 'quiz_cyber2.html';
+            }, 400);
+        });
+    });
+    </script>
 </body>
 </html>

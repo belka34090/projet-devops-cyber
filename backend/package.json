@@ -3,7 +3,6 @@
     "version": "1.0.0",
     "description": "API Node.js pour logs sensibilisation cybersécurité",
     "main": "API_Node.js",
-    "type": "module",
     "scripts": {
       "start": "node API_Node.js"
     },

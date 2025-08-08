@@ -2,55 +2,120 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Connexion — Sensibilisation Cybersécurité</title>
+    <title>Connexion - Sensibilisation Cybersécurité</title>
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { font-family: 'Roboto', sans-serif; background: #f4f7fa; margin: 0; }
-        header { background: linear-gradient(135deg, #003c53, #0076a8); color: #fff; padding: 50px 0; text-align: center; border-radius: 0 0 20px 20px;}
-        header h1 { margin: 0; font-size: 2.8em;}
-        header p { font-size: 1.3em; margin-top: 10px;}
-        .container { max-width: 400px; margin: 60px auto; background: #fff; padding: 35px 28px 30px 28px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.11);}
-        .title { font-size: 1.6em; margin-bottom: 20px; color: #003c53; font-weight: 500;}
-        .form-group { margin-bottom: 22px; }
-        .form-group label { display: block; color: #003c53; margin-bottom: 7px; font-weight: 500;}
-        .form-group input {
-            width: 100%; padding: 13px 10px; border: 1.5px solid #ddd;
-            border-radius: 7px; font-size: 1.1em; margin-bottom: 2px;
-            box-sizing: border-box;
+        .container {
+            max-width: 400px;
+            margin: 80px auto;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 6px 24px rgba(0,60,83,0.10);
+            padding: 40px 30px;
+            text-align: center;
         }
-        .btn-login {
-            width: 100%; background: #006c8d; color: #fff; border: none;
-            padding: 16px 0; font-size: 1.15em; border-radius: 8px;
-            font-weight: bold; cursor: pointer; transition: background 0.18s;
+        h1 {
+            margin-bottom: 30px;
+            color: #003c53;
+            font-size: 2.2em;
+            font-weight: 500;
         }
-        .btn-login:hover { background: #005f75; }
-        .note { text-align: center; margin-top: 15px; color: #888; font-size: 0.97em;}
-        @media (max-width: 700px) {
-            .container { padding: 18px 6px; margin: 20px; }
-            header h1 { font-size: 2em;}
+        label {
+            display: block;
+            margin-top: 18px;
+            margin-bottom: 8px;
+            font-weight: 500;
+            text-align: left;
+        }
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px 12px;
+            border-radius: 8px;
+            border: 1px solid #bcd5e3;
+            font-size: 1em;
+            background: #f7fafc;
+            margin-bottom: 8px;
+        }
+        button {
+            width: 100%;
+            padding: 14px 0;
+            margin-top: 20px;
+            background: linear-gradient(135deg, #0076a8, #003c53);
+            color: #fff;
+            font-size: 1.2em;
+            border: none;
+            border-radius: 10px;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0 4px 10px rgba(0,60,83,0.07);
+            transition: background 0.3s;
+        }
+        button:hover {
+            background: linear-gradient(135deg, #003c53, #0076a8);
+        }
+        .error-message {
+            color: #c00;
+            margin-top: 10px;
+            font-size: 1em;
+            display: none;
         }
     </style>
 </head>
 <body>
-<header>
-    <h1>Sensibilisation Cybersécurité</h1>
-    <p>DSI — Mairie de Castelnau-le-Lez</p>
-</header>
-<div class="container">
-    <div class="title">Connexion requise</div>
-    <form>
-        <div class="form-group">
-            <label for="username">Nom d'utilisateur</label>
-            <input type="text" id="username" name="username" autocomplete="username" required>
-        </div>
-        <div class="form-group">
-            <label for="password">Mot de passe</label>
-            <input type="password" id="password" name="password" autocomplete="current-password" required>   
-        </div>
-        <button class="btn-login" type="submit">Se connecter</button>
-    </form>
-    <div class="note">Accès réservé aux participants de la campagne cybersécurité.</div>
-</div>
+    <div class="container">
+        <h1>Connexion</h1>
+        <label for="matricule">Matricule</label>
+        <input type="text" id="matricule" placeholder="Entrez votre matricule" autocomplete="username">      
+
+        <label for="password">Mot de passe</label>
+        <input type="password" id="password" placeholder="Entrez votre mot de passe" autocomplete="current-password">
+
+        <button id="loginBtn">Se connecter</button>
+        <div id="errorMessage" class="error-message"></div>
+    </div>
+
+    <script>
+    document.getElementById('loginBtn').addEventListener('click', async () => {
+        const matricule = document.getElementById('matricule').value.trim();
+        const password = document.getElementById('password').value.trim();
+        const errorDiv = document.getElementById('errorMessage');
+        errorDiv.style.display = "none";
+        errorDiv.textContent = "";
+
+        if (!matricule || !password) {
+            errorDiv.textContent = "Merci de remplir tous les champs.";
+            errorDiv.style.display = "block";
+            return;
+        }
+
+        try {
+            const response = await fetch('http://128.251.40.169:5000/api/login', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ matricule, code: password })
+            });
+
+            const data = await response.json();
+
+            if (response.ok && data.success) {
+                // Stocker l'agent connecté
+                localStorage.setItem('agent', JSON.stringify(data.agent));
+                // Redirige TOUJOURS vers le port 8080 même si tu es arrivé sans le port dans l'URL
+                const origin = window.location.origin.includes(":8080")
+                    ? window.location.origin
+                    : "http://128.251.40.169:8080";
+                window.location.href = origin + "/index.html";
+            } else {
+                errorDiv.textContent = "Matricule ou mot de passe incorrect.";
+                errorDiv.style.display = "block";
+            }
+        } catch (err) {
+            errorDiv.textContent = "Erreur réseau, merci de réessayer plus tard.";
+            errorDiv.style.display = "block";
+        }
+    });
+    </script>
 </body>
 </html>

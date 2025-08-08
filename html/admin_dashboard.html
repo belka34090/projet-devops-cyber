@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Admin – Dashboard Sensibilisation</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
+    <style>
+        body { font-family: 'Roboto', Arial, sans-serif; background: #f5fbff; margin: 0;}
+        .admin-bar {
+            background: linear-gradient(135deg, #003c53, #27C0D4);
+            color: #fff;
+            padding: 22px 0;
+            text-align: center;
+            font-size: 2em;
+            font-weight: bold;
+            margin-bottom: 24px;
+            letter-spacing: 0.5px;
+        }
+        .controls {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            max-width: 1100px;
+            margin: 0 auto 18px auto;
+            gap: 12px;
+            padding: 0 18px;
+        }
+        .controls input, .controls select, .controls button {
+            padding: 7px 12px;
+            font-size: 1em;
+            border-radius: 7px;
+            border: 1px solid #b6d7e9;
+            margin-bottom: 0;
+        }
+        .controls button {
+            background: #27C0D4;
+            color: #fff;
+            font-weight: bold;
+            border: none;
+            cursor: pointer;
+        }
+        .controls button:hover { background: #178899; }
+        table {
+            width: 98%;
+            margin: 0 auto 24px auto;
+            border-collapse: collapse;
+            background: #fff;
+            border-radius: 13px;
+            box-shadow: 0 3px 18px rgba(0,0,0,0.08);
+            font-size: 1em;
+            overflow: hidden;
+        }
+        th, td {
+            border-bottom: 1px solid #eaf4fa;
+            padding: 9px 10px;
+            text-align: left;
+        }
+        th { background: #eafdff; color: #003c53;}
+        tr:last-child td { border-bottom: none; }
+        .score-ok { color: #17a73c; font-weight: bold;}
+        .score-nok { color: #e24640; font-weight: bold;}
+        @media (max-width: 700px) {
+            .admin-bar { font-size: 1.2em; padding: 11px 0;}
+            th, td { font-size: 0.98em; padding: 7px 2px; }
+            .controls { flex-direction: column; gap: 6px;}
+        }
+
+        /* POPUP défilant */
+        #details-popup {
+            display: none;
+            position: fixed;
+            left: 0; top: 0;
+            width: 100vw; height: 100vh;
+            background: rgba(0,0,0,0.20);
+            z-index: 999;
+        }
+        #details-popup .popup-inner {
+            background: #fff;
+            max-width: 540px;
+            margin: 50px auto;
+            padding: 22px 20px 12px 20px;
+            border-radius: 15px;
+            box-shadow: 0 2px 22px #17889977;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+        }
+        #details-popup .close-btn {
+            position: absolute;
+            right: 14px; top: 10px;
+            font-size: 1.4em;
+            color: #27C0D4;
+            background: none;
+            border: none;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="admin-bar">️️ Tableau de bord – Campagne Cybersécurité</div>
+    <div class="controls">
+        <input type="text" id="search" placeholder="Recherche (nom, matricule, service)" oninput="renderTable()">
+        <select id="service-filter" onchange="renderTable()">
+            <option value="">— Tous les services —</option>
+            <option value="finance">Finance</option>
+            <option value="technique">Technique</option>
+            <option value="rh">RH</option>
+            <option value="service">Service</option>
+        </select>
+        <button onclick="exportCSV()">Exporter CSV</button>
+        <button onclick="loadData()">  Rafraîchir</button>
+    </div>
+    <table id="results-table">
+        <thead>
+            <tr>
+                <th>Matricule</th>
+                <th>Nom</th>
+                <th>Service</th>
+                <th>Quiz/Modules validés</th>
+                <th>Dernière activité</th>
+                <th>Score max (quiz)</th>
+                <th>Actions</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr><td colspan="7" style="text-align:center;">Chargement...</td></tr>
+        </tbody>
+    </table>
+    <!-- POPUP AVEC SCROLL -->
+    <div id="details-popup">
+        <div class="popup-inner">
+            <button class="close-btn" onclick="closeDetails()">&times;</button>
+            <div id="details-content"></div>
+        </div>
+    </div>
+    <script>
+    let activities = [];
+    let agents = [];
+
+    async function loadData() {
+        document.querySelector('#results-table tbody').innerHTML = `<tr><td colspan="7" style="text-align:center;">Chargement...</td></tr>`;
+        try {
+            const resp = await fetch('http://128.251.40.169:5000/api/activities');
+            activities = await resp.json();
+            agents = getAgentListFromActivities(activities);
+            renderTable();
+        } catch (err) {
+            document.querySelector('#results-table tbody').innerHTML = `<tr><td colspan="7" style="color:#e24640;">Erreur lors du chargement des données</td></tr>`;
+        }
+    }
+
+    function getAgentListFromActivities(logs) {
+        const seen = {};
+        const result = [];
+        for (const row of logs) {
+            const key = row.matricule || (row.nom+"_"+row.service);
+            if (!seen[key]) {
+                result.push({
+                    matricule: row.matricule || "",
+                    nom: row.nom || "",
+                    service: row.service || "",
+                });
+                seen[key] = true;
+            }
+        }
+        return result;
+    }
+
+    function countQuizValidations(logs) {
+        let count = 0;
+        for (const a of logs) {
+            if (a.type_activite && a.type_activite.match(/quiz_\d+_validation/)) count++;
+        }
+        return count;
+    }
+
+    function maxQuizScore(logs) {
+        let max = 0;
+        for (const a of logs) {
+            if (a.details && a.details.match(/Score: (\d)\/3/)) {
+                const m = a.details.match(/Score: (\d)\/3/);
+                const score = parseInt(m[1]);
+                if (score > max) max = score;
+            }
+        }
+        return max;
+    }
+
+    function renderTable() {
+        const tbody = document.querySelector('#results-table tbody');
+        const search = document.getElementById('search').value.toLowerCase();
+        const filterService = document.getElementById('service-filter').value;
+
+        let rows = '';
+        for (const ag of agents) {
+            if (!ag.nom && !ag.matricule) continue;
+            if (search && !(ag.nom.toLowerCase().includes(search) || ag.matricule.toLowerCase().includes(search) || ag.service.toLowerCase().includes(search))) continue;
+            if (filterService && ag.service !== filterService) continue;
+
+            // Logs de l'agent
+            const agLogs = activities.filter(a =>
+                (a.matricule && ag.matricule && a.matricule === ag.matricule) ||
+                (!a.matricule && a.nom === ag.nom && a.service === ag.service)
+            );
+
+            const quizValid = countQuizValidations(agLogs);
+            const last = agLogs[agLogs.length-1];
+            const maxScore = maxQuizScore(agLogs);
+            rows += `
+                <tr>
+                    <td>${ag.matricule}</td>
+                    <td>${ag.nom}</td>
+                    <td>${ag.service}</td>
+                    <td>${quizValid}/3</td>
+                    <td>${last ? (last.date_heure || '') : ''}</td>
+                    <td class="${maxScore===3?'score-ok':'score-nok'}">${maxScore}/3</td>
+                    <td><button style="font-size:0.96em;padding:4px 13px; border-radius:6px;" onclick="showDetails('${ag.matricule}','${ag.nom}','${ag.service}')">Détail</button></td>
+                </tr>
+            `;
+        }
+        if (!rows) {
+            rows = `<tr><td colspan="7" style="text-align:center;">Aucun résultat</td></tr>`;
+        }
+        tbody.innerHTML = rows;
+    }
+
+    function showDetails(matricule, nom, service) {
+        let agLogs = activities.filter(a =>
+            (a.matricule && matricule && a.matricule === matricule) ||
+            (!a.matricule && a.nom === nom && a.service === service)
+        );
+        agLogs = agLogs.sort((a,b)=> new Date(a.date_heure) - new Date(b.date_heure));
+        let html = `<div style="font-size:1.22em;font-weight:bold;margin-bottom:7px;">
+            ${nom} <span style="color:#27C0D4;">(${service})</span> ${matricule?("<span style='font-size:0.82em;color:#789'>["+matricule+"]</span>"):""}
+        </div>`;
+        html += `<table style="width:100%;font-size:0.98em;"><tr>
+            <th>Date/Heure</th>
+            <th>Activité</th>
+            <th>Détail</th>
+        </tr>`;
+        for(const l of agLogs){
+            html += `<tr>
+                <td>${l.date_heure ? l.date_heure.replace('T',' ').replace('.000Z','') : ''}</td>
+                <td>${l.type_activite||''}</td>
+                <td>${l.details||''}</td>
+            </tr>`;
+        }
+        html += `</table>`;
+        document.getElementById('details-content').innerHTML = html;
+        document.getElementById('details-popup').style.display = 'block';
+    }
+
+    function closeDetails() {
+        document.getElementById('details-popup').style.display = 'none';
+    }
+
+    function exportCSV() {
+        let rows = [["Matricule","Nom","Service","Type activité","Date/Heure","Détails"]];
+        for (const l of activities) {
+            rows.push([
+                l.matricule||"",
+                l.nom||"",
+                l.service||"",
+                l.type_activite||"",
+                l.date_heure||"",
+                l.details||""
+            ]);
+        }
+        let csv = rows.map(r=>r.map(x=>`"${(x+"").replace(/"/g,'""')}"`).join(",")).join("\r\n");
+        const a = document.createElement("a");
+        a.href = "data:text/csv;charset=utf-8,"+encodeURIComponent(csv);
+        a.download = "campagne_cybersecurite_logs.csv";
+        a.click();
+    }
+
+    // Initial load
+    loadData();
+    </script>
+</body>
+</html>

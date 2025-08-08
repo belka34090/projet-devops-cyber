@@ -3,7 +3,7 @@ const mysql = require('mysql2/promise');
 
 (async () => {
   const connection = await mysql.createConnection({
-    host: 'db',
+    host: 'db', // ou 'devops-cyber-db' selon ton docker-compose
     user: 'devops',
     password: 'devops123',
     database: 'campagne'
@@ -18,7 +18,19 @@ const mysql = require('mysql2/promise');
       code_acces VARCHAR(32) NOT NULL
     );
   `);
-
   console.log('✅ Table agents créée');
+
+  await connection.execute(`
+    CREATE TABLE IF NOT EXISTS activities (
+      id INT AUTO_INCREMENT PRIMARY KEY,
+      agent_id INT,
+      type_activite VARCHAR(100),
+      details TEXT,
+      date_heure DATETIME DEFAULT CURRENT_TIMESTAMP,
+      FOREIGN KEY (agent_id) REFERENCES agents(id)
+    );
+  `);
+  console.log('✅ Table activities créée');
+
   await connection.end();
 })();

@@ -7,6 +7,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"> 
     <style>
         body { font-family: 'Roboto', Arial, sans-serif; background: #f3f7fb; margin: 0; }
+        .top-bar {
+            background: linear-gradient(135deg, #27C0D4, #178899);
+            color: #fff;
+            padding: 16px 0;
+            text-align: right;
+            font-size: 1.1em;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
         .quiz-container { max-width: 600px; background: #fff; margin: 48px auto; border-radius: 15px; box-shadow: 0 4px 16px rgba(0,0,0,0.10); padding: 45px 32px;}
         .quiz-title { color: #27C0D4; font-size: 2em; margin-bottom: 24px; font-weight: bold;}
         .question { margin: 24px 0 10px 0; font-size: 1.18em; color: #23245c;}
@@ -24,6 +33,31 @@
         .explain strong { color: #27C0D4;}
     </style>
     <script>
+      let startTime, agent;
+      document.addEventListener('DOMContentLoaded', () => {
+        agent = JSON.parse(localStorage.getItem('agent') || 'null');
+        const agentBar = document.getElementById('agent-bar');
+        if (agent && agent.nom && agent.service) {
+            agentBar.textContent = `  ${agent.nom} (${agent.service})`;
+        } else {
+            window.location.href = 'login.html';
+        }
+
+        // Log visite
+        fetch('http://128.251.40.169:5000/api/activities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                matricule: agent.matricule,
+                action: 'quiz_3_visite',
+                details: 'L’agent a ouvert le quiz n°3.'
+            })
+        });
+
+        // Chrono de présence
+        startTime = Date.now();
+      });
+
       function corrigerQuiz(event) {
         event.preventDefault();
         let score = 0;
@@ -31,16 +65,32 @@
         let q2 = document.querySelector('input[name="q2"]:checked')?.value;
         let q3 = document.querySelector('input[name="q3"]:checked')?.value;
 
-        if (q1 === "c") score++;
-        if (q2 === "b") score++;
-        if (q3 === "a") score++;
+        let correct = {q1:"c", q2:"b", q3:"a"};
+        let answers = [];
+        if (q1 === correct.q1) { score++; answers.push("Q1:correct("+q1+")"); } else { answers.push("Q1:faux("+q1+")"); }
+        if (q2 === correct.q2) { score++; answers.push("Q2:correct("+q2+")"); } else { answers.push("Q2:faux("+q2+")"); }
+        if (q3 === correct.q3) { score++; answers.push("Q3:correct("+q3+")"); } else { answers.push("Q3:faux("+q3+")"); }
 
         let result = document.getElementById("result");
         let explanations = document.getElementById("explanations");
         let retry = document.getElementById("retry");
         let next = document.getElementById("next");
 
+        // Masquer le bouton submit
         document.querySelector('.submit-btn').style.display = 'none';
+
+        // Log validation avec temps, score, réponses
+        const durationSec = Math.round((Date.now() - startTime) / 1000);
+        const detailsLog = `Durée: ${durationSec}s | Score: ${score}/3 | Réponses: ${answers.join(', ')}`;   
+        fetch('http://128.251.40.169:5000/api/activities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                matricule: agent.matricule,
+                action: 'quiz_3_validation',
+                details: detailsLog
+            })
+        });
 
         if (score === 3) {
           result.textContent = "Bravo ! Vous avez réussi le quiz !";
@@ -74,6 +124,7 @@ ficielle.</b><br>
     </script>
 </head>
 <body>
+<div class="top-bar" id="agent-bar"></div>
 <div class="quiz-container">
     <div class="quiz-title">Quiz 3 — Vigilance pièces jointes & faux support</div>
     <form onsubmit="corrigerQuiz(event)">

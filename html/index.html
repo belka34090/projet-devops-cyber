@@ -7,49 +7,115 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
         body { font-family: 'Roboto', sans-serif; background: #f4f7fa; margin: 0; }
-        header { background: linear-gradient(135deg, #003c53, #0076a8); color: #fff; padding: 50px 0; text-align: center; border-radius: 0 0 20px 20px;}
-        header h1 { margin: 0; font-size: 2.8em;}
-        header p { font-size: 1.3em; margin-top: 10px;}
-        .container { max-width: 700px; margin: 50px auto; background: #fff; padding: 40px 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.11);}
-        .intro { font-size: 1.2em; margin-bottom: 40px; color: #333;}
-        .btn-start {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            width: 100%;
-            padding: 22px 0;
-            margin-top: 20px;
-            font-size: 1.3em;
-            background: #006c8d;
+        header {
+            background: linear-gradient(135deg, #003c53, #0076a8);
             color: #fff;
-            border: none;
-            border-radius: 8px;
-            font-weight: bold;
-            text-decoration: none;
-            transition: background 0.2s;
+            padding: 50px 0 30px 0;
             text-align: center;
+            border-radius: 0 0 20px 20px;
+            position: relative;
         }
-        .btn-start:hover { background: #005f75; }
-        @media (max-width: 768px) {
-            .container { padding: 20px 10px; margin: 15px; }
-            header h1 { font-size: 2em;}
-            .btn-start { font-size: 1em; padding: 13px 0; }
+        header h1 { margin: 0; font-size: 2.8em;}
+        header p { font-size: 1.3em; margin: 10px 0 0 0;}
+        .agent-bar {
+            position: absolute;
+            top: 15px;
+            right: 40px;
+            font-size: 1.1em;
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+        .logout-btn {
+            background: #fff;
+            color: #0076a8;
+            border: none;
+            padding: 5px 16px;
+            border-radius: 7px;
+            cursor: pointer;
+            font-weight: 500;
+            margin-left: 10px;
+            transition: background 0.2s, color 0.2s;
+            box-shadow: 0 2px 6px rgba(0,60,83,0.10);
+        }
+        .logout-btn:hover {
+            background: #0076a8;
+            color: #fff;
+        }
+        main {
+            margin: 40px auto;
+            max-width: 850px;
+            background: #fff;
+            border-radius: 20px;
+            box-shadow: 0 6px 24px rgba(0,60,83,0.08);
+            padding: 45px 30px 55px 30px;
+        }
+        .main-btn {
+            margin: 32px 0 0 0;
+            background: linear-gradient(135deg, #0076a8, #003c53);
+            color: #fff;
+            font-size: 1.18em;
+            border: none;
+            border-radius: 10px;
+            padding: 14px 32px;
+            cursor: pointer;
+            font-weight: 500;
+            box-shadow: 0 4px 10px rgba(0,60,83,0.09);
+            transition: background 0.3s, transform 0.12s;
+        }
+        .main-btn:hover {
+            background: linear-gradient(135deg, #003c53, #0076a8);
+            transform: translateY(-1px) scale(1.02);
         }
     </style>
 </head>
 <body>
-<header>
-    <h1>Sensibilisation Cybersécurité</h1>
-    <p>DSI — Mairie de Castelnau-le-Lez</p>
-</header>
-<div class="container">
-    <div class="intro">
-        <p>Bienvenue dans ce parcours interactif de sensibilisation à la cybersécurité.<br>
-        <strong>Votre mission :</strong> repérer les tentatives de phishing et éviter les pièges !<br><br>   
-        Vous allez vivre une simulation d’attaque inspirée de cas réels :<br>
-        <strong>fausses notifications Edenred, demandes de mises à jour de compte, etc.</strong></p>
-    </div>
-    <a href="phishing_edenred.html" class="btn-start">Commencer la simulation &#8594;</a>
-</div>
+    <header>
+        <div class="agent-bar" id="agentInfo" style="display:none;">
+            <span id="agentName"></span>
+            <button class="logout-btn" id="logoutBtn">Déconnexion</button>
+        </div>
+        <h1>Sensibilisation Cybersécurité</h1>
+        <p>Bienvenue sur votre espace de sensibilisation</p>
+    </header>
+    <main>
+        <h2>Accueil</h2>
+        <p>
+            Bienvenue sur la plateforme de sensibilisation à la cybersécurité de la mairie.<br>
+            Retrouvez ici vos parcours, vidéos et quiz pour renforcer votre culture numérique !
+        </p>
+        <button id="btn-continuer" class="main-btn">Continuer la sensibilisation</button>
+    </main>
+
+    <script>
+    // Redirige vers login.html si non connecté
+    document.addEventListener('DOMContentLoaded', () => {
+        const agentData = localStorage.getItem('agent');
+        const agentInfoDiv = document.getElementById('agentInfo');
+        const agentNameSpan = document.getElementById('agentName');
+        if (agentData) {
+            const agent = JSON.parse(agentData);
+            agentInfoDiv.style.display = "flex";
+            agentNameSpan.textContent = `  ${agent.nom} (${agent.service})`;
+        } else {
+            // REDIRECTION CORRIGÉE POUR LE PORT ET L'URL
+            window.location.href = window.location.origin + '/login.html';
+            // Ou pour forcer 8080 (décommente la ligne suivante si besoin):
+            // window.location.href = 'http://128.251.40.169:8080/login.html';
+        }
+
+        // Gestion déconnexion
+        document.getElementById('logoutBtn').addEventListener('click', () => {
+            localStorage.removeItem('agent');
+            window.location.href = window.location.origin + '/login.html';
+            // Ou window.location.href = 'http://128.251.40.169:8080/login.html';
+        });
+
+        // Bouton Continuer la sensibilisation
+        document.getElementById('btn-continuer').addEventListener('click', () => {
+            window.location.href = 'phishing_edenred.html'; // à adapter selon la page cible
+        });
+    });
+    </script>
 </body>
 </html>

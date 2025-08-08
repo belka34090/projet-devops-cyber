@@ -2,7 +2,7 @@
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
-    <title>Vidéo explicative – Sécurité Edenred : vigilance & faux sites</title>
+    <title>Vidéo 2 — Sécurité des identifiants</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
     <style>
@@ -10,6 +10,15 @@
             background: #f2f8fc;
             font-family: 'Roboto', Arial, sans-serif;
             margin: 0;
+        }
+        .top-bar {
+            background: linear-gradient(135deg, #27C0D4, #178899);
+            color: #fff;
+            padding: 16px 0;
+            text-align: right;
+            font-size: 1.1em;
+            font-weight: 500;
+            letter-spacing: 0.5px;
         }
         .container {
             max-width: 760px;
@@ -66,13 +75,53 @@
     </style>
 </head>
 <body>
+    <div class="top-bar" id="agent-bar"></div>
     <div class="container">
-        <h1>Vidéo explicative : vigilance sur les faux sites Edenred</h1>
+        <h1>Vidéo 2 — Sécurité des identifiants</h1>
         <div class="video-container">
-            <!-- Remplace l’URL ci-dessous par celle de ta vidéo, hébergée sur YouTube, Vimeo ou un service compatible embed -->
-            <iframe src="https://www.youtube.com/embed/LIEN_DE_TA_VIDEO" allowfullscreen title="Vidéo explicative – vigilance Edenred"></iframe>
+            <iframe src="https://drive.google.com/file/d/14SaDEksYLzvTLeOcRGrFKAhuCPvpRWK_/preview" allow="autoplay" allowfullscreen title="Vidéo 2 — Sécurité des identifiants"></iframe>
         </div>
-        <a href="quiz_cyber3.html" class="next-btn">Poursuivre la sensibilisation</a>
+        <a href="quiz_cyber3.html" class="next-btn" id="btn-continuer">Poursuivre la sensibilisation</a>     
     </div>
+    <script>
+    let startTime, agent;
+    document.addEventListener('DOMContentLoaded', () => {
+        agent = JSON.parse(localStorage.getItem('agent') || 'null');
+        const agentBar = document.getElementById('agent-bar');
+        if (agent && agent.nom && agent.service) {
+            agentBar.textContent = `  ${agent.nom} (${agent.service})`;
+        } else {
+            window.location.href = 'login.html';
+        }
+        // Log visite vidéo 2
+        fetch('http://128.251.40.169:5000/api/activities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                matricule: agent.matricule,
+                action: 'video_2_visite',
+                details: 'L’agent a ouvert la page vidéo 2 (sécurité des identifiants).'
+            })
+        });
+        startTime = Date.now();
+
+        document.getElementById('btn-continuer').addEventListener('click', function(e){
+            e.preventDefault();
+            const durationSec = Math.round((Date.now() - startTime) / 1000);
+            fetch('http://128.251.40.169:5000/api/activities', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    matricule: agent.matricule,
+                    action: 'video_2_validation',
+                    details: `L’agent a cliqué pour poursuivre la sensibilisation après ${durationSec} secondes.`
+                })
+            });
+            setTimeout(() => {
+                window.location.href = 'quiz_cyber3.html';
+            }, 400);
+        });
+    });
+    </script>
 </body>
 </html>

@@ -125,8 +125,8 @@
                 <img src="https://www.edenred.fr/sites/default/files/2021-07/logo-edenred.png" alt="Logo Edenred">
                 <span class="header-title">Edenred Ticket<br>Restaurant</span>
             </div>
-            <div class="header-id">
-                Identifiant&nbsp;: <span style="font-weight: 400;">b.prenom@mairie-castelnau.fr</span>       
+            <div class="header-id" id="agentInfo">
+                <!-- Dynamique JS -->
             </div>
         </div>
         <div class="content">
@@ -147,7 +147,7 @@ de la conformité RGPD, nous vous demandons de <b>confirmer vos informations pou
                 <span>Les cybercriminels imitent Edenred pour voler vos données. Restez vigilant face aux demandes inhabituelles.</span>
             </div>
         </div>
-        <a href="quiz_cyber.html" class="continue-btn">
+        <a href="quiz_cyber.html" class="continue-btn" id="btn-continuer">
             Continuer pour poursuivre la sensibilisation
         </a>
         <div class="footer">
@@ -156,5 +156,51 @@ de la conformité RGPD, nous vous demandons de <b>confirmer vos informations pou
             Edenred France © 2025 — Ceci est une simulation pédagogique.
         </div>
     </div>
+
+    <script>
+    document.addEventListener('DOMContentLoaded', () => {
+        // Vérifie connexion et affiche nom/service agent
+        const agent = JSON.parse(localStorage.getItem('agent') || 'null');
+        const agentInfo = document.getElementById('agentInfo');
+        if(agent && agent.nom && agent.service) {
+            agentInfo.innerHTML = `Identifiant&nbsp;: <span style="font-weight: 400;">${agent.nom} (${agent.service})</span>`;
+        } else {
+            window.location.href = 'login.html';
+        }
+
+        // Log de la visite à l’arrivée
+        fetch('http://128.251.40.169:5000/api/activities', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                matricule: agent.matricule,
+                action: 'phishing_edenred_visite',
+                details: 'L’agent a visité la page de sensibilisation phishing Edenred.'
+            })
+        });
+
+        // Enregistre le timestamp d’arrivée
+        const startTime = Date.now();
+
+        // CLIC SUR "Continuer" : Empêche la redirection immédiate et force la redirection via JS
+        document.getElementById('btn-continuer').addEventListener('click', function(e){
+            e.preventDefault(); // Annule la redirection du <a>
+            const endTime = Date.now();
+            const durationSec = Math.round((endTime - startTime) / 1000);
+            fetch('http://128.251.40.169:5000/api/activities', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    matricule: agent.matricule,
+                    action: 'phishing_edenred_validation',
+                    details: `L’agent a validé la page phishing_edenred après ${durationSec} secondes.`      
+                })
+            });
+            setTimeout(() => {
+                window.location.href = 'quiz_cyber.html';
+            }, 400); // 400 ms de buffer pour garantir le log
+        });
+    });
+    </script>
 </body>
 </html>

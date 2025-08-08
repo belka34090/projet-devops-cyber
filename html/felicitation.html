@@ -7,6 +7,15 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
     <style>
         body { background: #f2f8fc; font-family: 'Roboto', Arial, sans-serif; margin: 0; }
+        .top-bar {
+            background: linear-gradient(135deg, #27C0D4, #178899);
+            color: #fff;
+            padding: 16px 0;
+            text-align: right;
+            font-size: 1.1em;
+            font-weight: 500;
+            letter-spacing: 0.5px;
+        }
         .main-container { max-width: 600px; margin: 60px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.11); padding: 46px 32px 38px 32px; text-align: center; }
         .trophy { font-size: 3.3em; margin-bottom: 10px; color: #27C0D4; }
         .title { font-size: 2.2em; color: #27C0D4; font-weight: bold; margin-bottom: 16px; }
@@ -23,9 +32,31 @@
     </style>
     <script>
       function imprimerPage() { window.print(); }
+      document.addEventListener('DOMContentLoaded', () => {
+        // Affiche nom/service agent en haut
+        const agent = JSON.parse(localStorage.getItem('agent') || 'null');
+        const agentBar = document.getElementById('agent-bar');
+        if (agent && agent.nom && agent.service) {
+            agentBar.textContent = `  ${agent.nom} (${agent.service})`;
+        }
+        // Log fin de sensibilisation (optionnel, une seule fois)
+        if (agent && !localStorage.getItem('done')) {
+            fetch('http://128.251.40.169:5000/api/activities', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    matricule: agent.matricule,
+                    action: 'sensibilisation_terminee',
+                    details: 'L’agent a terminé tout le parcours de sensibilisation.'
+                })
+            });
+            localStorage.setItem('done', '1');
+        }
+      });
     </script>
 </head>
 <body>
+<div class="top-bar" id="agent-bar"></div>
 <div class="main-container">
     <div class="trophy"><</div>
     <div class="title">Félicitations !</div>
