@@ -1,0 +1,70 @@
+- name: Sécurisation UFW + MAJ IP SSH via DuckDNS
+  hosts: vm
+  become: true
+  vars:
+    ufw_bin: /usr/sbin/ufw
+    update_script_path: /usr/local/bin/update-ufw-duckdns.sh
+
+  tasks:
+    - name: Installer UFW et curl
+      ansible.builtin.package:
+        name:
+          - ufw
+          - curl
+        state: present
+
+    - name: Activer UFW (deny incoming / allow outgoing)
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+
+    - name: Autoriser le trafic sortant
+      community.general.ufw:
+        policy: allow
+        direction: outgoing
+
+    - name: Ouvrir les ports publics (Anywhere)
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop: "{{ open_ports_anywhere }}"
+
+    - name: Déployer le script de mise à jour UFW pour SSH (DuckDNS)
+      ansible.builtin.copy:
+        dest: "{{ update_script_path }}"
+        mode: "0755"
+        content: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          DOMAIN="{{ duckdns_domain }}"
+          TOKEN="{{ duckdns_token }}"
+          UFW="/usr/sbin/ufw"
+
+          CURRENT_IP="$(curl -fsS "https://www.duckdns.org/update?domains=${DOMAIN}&token=${TOKEN}&ip=" | grep -Eo '([0-9]{1,3}\.){3}[0-9]{1,3}' || true)"
+
+          if [[ -z "${CURRENT_IP}" ]]; then
+            echo "[ERR] Impossible de récupérer l'IP publique depuis DuckDNS" >&2
+            exit 1
+          fi
+
+          while $UFW status numbered | sed -n '1!p' | grep -E '22/tcp\s+ALLOW' >/dev/null 2>&1; do
+            LINE=$($UFW status numbered | sed -n '1!p' | nl -w1 -s' ' | grep -E '22/tcp\s+ALLOW' | awk '{print $1}' | tail -n1)
+            $UFW --force delete ${LINE}
+          done
+
+          $UFW allow from ${CURRENT_IP} to any port 22 proto tcp
+          echo "[OK] SSH autorisé depuis ${CURRENT_IP}"
+
+    - name: Lancer une première mise à jour tout de suite
+      ansible.builtin.command: "{{ update_script_path }}"
+      register: update_run
+      changed_when: "'[OK] SSH autorisé' in update_run.stdout or update_run.rc == 0"
+
+    - name: Planifier la mise à jour automatique (toutes les 5 min)
+      ansible.builtin.cron:
+        name: "MAJ UFW SSH depuis DuckDNS"
+        user: root
+        job: "{{ update_script_path }} >> /var/log/duckdns_ufw.log 2>&1"
+        minute: "*/5"
