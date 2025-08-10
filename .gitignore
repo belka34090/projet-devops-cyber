@@ -6,3 +6,10 @@ terraform.tfstate.*
 *.tfvars
 crash.log
 crash.*.log
+# Terraform (ne jamais versionner)
+.terraform/
+**/.terraform/
+.terraform.lock.hcl
+terraform.lock.hcl
+# Providers copiés par erreur dans le projet
+terraform/**/providers/
