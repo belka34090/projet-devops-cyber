@@ -45,7 +45,7 @@
         }
 
         // Log visite
-        fetch('http://128.251.40.169:5000/api/activities', {
+        fetch('/api/activities', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -82,7 +82,7 @@
         // Log validation avec temps, score, réponses
         const durationSec = Math.round((Date.now() - startTime) / 1000);
         const detailsLog = `Durée: ${durationSec}s | Score: ${score}/3 | Réponses: ${answers.join(', ')}`;   
-        fetch('http://128.251.40.169:5000/api/activities', {
+        fetch('/api/activities', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({

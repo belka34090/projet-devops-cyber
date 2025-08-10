@@ -141,7 +141,7 @@
     async function loadData() {
         document.querySelector('#results-table tbody').innerHTML = `<tr><td colspan="7" style="text-align:center;">Chargement...</td></tr>`;
         try {
-            const resp = await fetch('http://128.251.40.169:5000/api/activities');
+            const resp = await fetch('/api/activities');
             activities = await resp.json();
             agents = getAgentListFromActivities(activities);
             renderTable();

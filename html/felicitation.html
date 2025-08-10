@@ -41,7 +41,7 @@
         }
         // Log fin de sensibilisation (optionnel, une seule fois)
         if (agent && !localStorage.getItem('done')) {
-            fetch('http://128.251.40.169:5000/api/activities', {
+            fetch('/api/activities', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

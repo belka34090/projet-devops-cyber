@@ -1,0 +1,72 @@
+---
+- name: Auto-sécurisation UFW + MAJ IP SSH via DuckDNS
+  hosts: ansible_vm
+  become: true
+  vars:
+    open_ports_anywhere:
+      - 80     # HTTP
+      - 443    # HTTPS
+      - 5000   # API ou autre service web
+    duckdns_domain: "projet-cyber"          # Sans le .duckdns.org
+    duckdns_token: "3f70c382-e470-4210-bbf0-1fab04fe4119"
+
+  tasks:
+    - name: Installer UFW et curl
+      apt:
+        name:
+          - ufw
+          - curl
+        state: present
+        update_cache: true
+
+    - name: Activer UFW (deny incoming / allow outgoing)
+      community.general.ufw:
+        state: enabled
+        policy: deny
+        direction: incoming
+
+    - name: Autoriser le trafic sortant
+      community.general.ufw:
+        direction: outgoing
+        policy: allow
+
+    - name: Ouvrir les ports publics (Anywhere)
+      community.general.ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop: "{{ open_ports_anywhere }}"
+
+    - name: Déployer le script corrigé pour mise à jour UFW via DuckDNS
+      copy:
+        dest: /usr/local/bin/update-ufw-duckdns.sh
+        mode: '0755'
+        owner: root
+        group: root
+        content: |
+          #!/usr/bin/env bash
+          set -euo pipefail
+          DOMAIN="{{ duckdns_domain }}"
+          TOKEN="{{ duckdns_token }}"
+          UFW="/usr/sbin/ufw"
+
+          CURRENT_IP="$(curl -fsS ifconfig.me || true)"
+          if [[ -z "${CURRENT_IP}" ]]; then
+            echo "[ERR] Impossible de récupérer l'IP publique depuis ifconfig.me" >&2
+            exit 1
+          fi
+
+          curl -s "https://www.duckdns.org/update?domains=${DOMAIN}&token=${TOKEN}&ip=${CURRENT_IP}" >/dev/null
+
+          SSH_RULES=$($UFW status numbered | grep -E '22/tcp\s+ALLOW' | awk '{print $1}' | tr -d '[]' || true)
+          if [[ -n "${SSH_RULES}" ]]; then
+            for RULE_NUM in $(echo "${SSH_RULES}" | sort -rn); do
+              $UFW --force delete "${RULE_NUM}" || true
+            done
+          fi
+
+          $UFW allow from "${CURRENT_IP}" to any port 22 proto tcp
+          echo "[OK] SSH autorisé depuis ${CURRENT_IP}"
+
+    - name: Exécuter une première mise à jour immédiatement
+      command: /usr/local/bin/update-ufw-duckdns.sh

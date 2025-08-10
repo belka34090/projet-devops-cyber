@@ -1,36 +1,91 @@
-version: '3.8'
-services:
-  site:
-    build: .
-    container_name: devops-cyber-site
-    ports:
-      - "8080:80"
-    volumes:
-      - ./html:/usr/share/nginx/html    # montage du dossier html local
-    restart: unless-stopped
+version: "3.8"
 
-  api:
-    build: ./backend
-    container_name: devops-cyber-api
-    ports:
-      - "5000:5000"
-    depends_on:
-      - db
-    restart: unless-stopped
-
-  db:
-    image: mariadb:latest
-    container_name: devops-cyber-db
-    restart: always
-    environment:
-      - MYSQL_ROOT_PASSWORD=supersecret
-      - MYSQL_DATABASE=campagne
-      - MYSQL_USER=devops
-      - MYSQL_PASSWORD=devops123
-    ports:
-      - "3306:3306"
-    volumes:
-      - db_data:/var/lib/mysql
+networks:
+  proxy:
+    driver: bridge
+  internal:
+    driver: bridge
 
 volumes:
   db_data:
+  npm_data:
+  npm_letsencrypt:
+
+services:
+  # Reverse proxy + SSL (UI d’admin sur :81)
+  proxy:
+    image: jc21/nginx-proxy-manager:latest
+    container_name: devops-cyber-proxy
+    restart: unless-stopped
+    ports:
+      - "80:80"      # HTTP (redirigé vers HTTPS)
+      - "81:81"      # UI d’admin NPM
+      - "443:443"    # HTTPS
+    networks:
+      - proxy
+      - internal
+    volumes:
+      - npm_data:/data
+      - npm_letsencrypt:/etc/letsencrypt
+
+  # Site statique servi par Nginx (non exposé publiquement; le proxy l'atteint par le réseau)
+  site:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: devops-cyber-site
+    restart: unless-stopped
+    networks:
+      - internal
+    volumes:
+      - ./html:/usr/share/nginx/html:ro
+      - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # API Node.js (non exposée publiquement; le proxy l'atteint par le réseau)
+  api:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: devops-cyber-api
+    restart: unless-stopped
+    networks:
+      - internal
+    environment:
+      DB_HOST: db
+      DB_PORT: "3306"
+      DB_NAME: ${MYSQL_DATABASE}
+      DB_USER: ${MYSQL_USER}
+      DB_PASSWORD: ${MYSQL_PASSWORD}
+      # ajoute ici d'autres variables (CORS_ORIGIN, NODE_ENV, etc.)
+    depends_on:
+      - db
+    healthcheck:
+      test: ["CMD-SHELL", "wget -qO- http://localhost:5000/health || exit 1"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Base de données (UNIQUEMENT réseau interne; plus de 3306 exposé)
+  db:
+    image: mariadb:latest
+    container_name: devops-cyber-db
+    restart: unless-stopped
+    networks:
+      - internal
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+      MYSQL_DATABASE: ${MYSQL_DATABASE}
+      MYSQL_USER: ${MYSQL_USER}
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    volumes:
+      - db_data:/var/lib/mysql
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p${MYSQL_ROOT_PASSWORD} --silent"]
+      interval: 30s
+      timeout: 5s
+      retries: 5

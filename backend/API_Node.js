@@ -1,5 +1,4 @@
-// backend/API_Node.js (VERSION CommonJS)
-
+// backend/API_Node.js (CommonJS)
 const express = require("express");
 const mysql = require("mysql2/promise");
 const bodyParser = require("body-parser");
@@ -9,14 +8,30 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 
+const PORT = process.env.PORT || 5000;
+
 const dbConfig = {
-  host: "db",
-  user: "devops",
-  password: "devops123",
-  database: "campagne",
+  host: process.env.DB_HOST || "db",
+  user: process.env.DB_USER || "devops",
+  password: process.env.DB_PASSWORD || "devops123",
+  database: process.env.DB_NAME || "campagne",
+  port: Number(process.env.DB_PORT || 3306),
 };
 
-// Endpoint GET pour récupérer tous les agents
+//   Health & Readiness
+app.get("/health", (_req, res) => res.status(200).send("OK"));
+app.get("/ready", async (_req, res) => {
+  try {
+    const conn = await mysql.createConnection(dbConfig);
+    await conn.ping();
+    await conn.end();
+    res.status(200).send("READY");
+  } catch (e) {
+    res.status(503).json({ status: "NOT_READY", error: e.message });
+  }
+});
+
+// --- tes routes existantes ---
 app.get("/api/agents", async (req, res) => {
   try {
     const conn = await mysql.createConnection(dbConfig);
@@ -28,7 +43,6 @@ app.get("/api/agents", async (req, res) => {
   }
 });
 
-// Authentifier un agent
 app.post("/api/login", async (req, res) => {
   const { matricule, code } = req.body;
   try {
@@ -38,17 +52,13 @@ app.post("/api/login", async (req, res) => {
       [matricule, code]
     );
     await conn.end();
-    if (rows.length > 0) {
-      res.json({ success: true, agent: rows[0] });
-    } else {
-      res.status(401).json({ success: false, message: "Accès refusé" });
-    }
+    if (rows.length > 0) res.json({ success: true, agent: rows[0] });
+    else res.status(401).json({ success: false, message: "Accès refusé" });
   } catch (err) {
     res.status(500).json({ success: false, error: err.message });
   }
 });
 
-// Enregistrer une activité
 app.post("/api/activities", async (req, res) => {
   const { matricule, action, details } = req.body;
   try {
@@ -73,8 +83,7 @@ app.post("/api/activities", async (req, res) => {
   }
 });
 
-// ✅ Endpoint admin — toutes les activités de tous les agents (en premier)
-app.get("/api/activities", async (req, res) => {
+app.get("/api/activities", async (_req, res) => {
   try {
     const conn = await mysql.createConnection(dbConfig);
     const [rows] = await conn.execute(`
@@ -90,7 +99,6 @@ app.get("/api/activities", async (req, res) => {
   }
 });
 
-// Ensuite la route par matricule !
 app.get("/api/activities/:matricule", async (req, res) => {
   const matricule = req.params.matricule;
   try {
@@ -110,6 +118,6 @@ app.get("/api/activities/:matricule", async (req, res) => {
   }
 });
 
-app.listen(5000, "0.0.0.0", () => {
-  console.log("API Node.js listening on port 5000");
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`API Node.js listening on port ${PORT}`);
 });

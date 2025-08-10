@@ -95,7 +95,7 @@
             window.location.href = 'login.html';
         }
         // Log visite vidéo 3
-        fetch('http://128.251.40.169:5000/api/activities', {
+        fetch('/api/activities', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -109,7 +109,7 @@
         document.getElementById('btn-continuer').addEventListener('click', function(e){
             e.preventDefault();
             const durationSec = Math.round((Date.now() - startTime) / 1000);
-            fetch('http://128.251.40.169:5000/api/activities', {
+            fetch('/api/activities', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({

@@ -169,7 +169,7 @@ de la conformité RGPD, nous vous demandons de <b>confirmer vos informations pou
         }
 
         // Log de la visite à l’arrivée
-        fetch('http://128.251.40.169:5000/api/activities', {
+        fetch('/api/activities', {
             method: 'POST',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({
@@ -187,7 +187,7 @@ de la conformité RGPD, nous vous demandons de <b>confirmer vos informations pou
             e.preventDefault(); // Annule la redirection du <a>
             const endTime = Date.now();
             const durationSec = Math.round((endTime - startTime) / 1000);
-            fetch('http://128.251.40.169:5000/api/activities', {
+            fetch('/api/activities', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({
