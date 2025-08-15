@@ -6,11 +6,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
     <style>
-        body {
-            background: #f2f8fc;
-            font-family: 'Roboto', Arial, sans-serif;
-            margin: 0;
-        }
+        body { background: #f2f8fc; font-family: 'Roboto', Arial, sans-serif; margin: 0; }
         .top-bar {
             background: linear-gradient(135deg, #27C0D4, #178899);
             color: #fff;
@@ -19,6 +15,7 @@
             font-size: 1.1em;
             font-weight: 500;
             letter-spacing: 0.5px;
+            padding-right: 32px;
         }
         .container {
             max-width: 760px;
@@ -29,12 +26,7 @@
             padding: 40px 34px 44px 34px;
             text-align: center;
         }
-        h1 {
-            color: #27C0D4;
-            font-size: 2em;
-            margin-bottom: 38px;
-            font-weight: 700;
-        }
+        h1 { color: #27C0D4; font-size: 2em; margin-bottom: 38px; font-weight: 700; }
         .video-container {
             position: relative;
             padding-bottom: 56.25%;
@@ -69,9 +61,7 @@
             transition: background 0.18s;
         }
         .next-btn:hover { background: #178899; }
-        @media (max-width: 800px) {
-            .container { padding: 18px 3vw 24px 3vw; }
-        }
+        @media (max-width: 800px) { .container { padding: 18px 3vw 24px 3vw; } }
     </style>
 </head>
 <body>
@@ -83,45 +73,46 @@
         </div>
         <a href="quiz_cyber3.html" class="next-btn" id="btn-continuer">Poursuivre la sensibilisation</a>     
     </div>
-    <script>
-    let startTime, agent;
-    document.addEventListener('DOMContentLoaded', () => {
-        agent = JSON.parse(localStorage.getItem('agent') || 'null');
-        const agentBar = document.getElementById('agent-bar');
-        if (agent && agent.nom && agent.service) {
-            agentBar.textContent = `  ${agent.nom} (${agent.service})`;
-        } else {
-            window.location.href = 'login.html';
-        }
-        // Log visite vidéo 2
-        fetch('/api/activities', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                matricule: agent.matricule,
-                action: 'video_2_visite',
-                details: 'L’agent a ouvert la page vidéo 2 (sécurité des identifiants).'
-            })
-        });
-        startTime = Date.now();
 
-        document.getElementById('btn-continuer').addEventListener('click', function(e){
-            e.preventDefault();
-            const durationSec = Math.round((Date.now() - startTime) / 1000);
-            fetch('/api/activities', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    matricule: agent.matricule,
-                    action: 'video_2_validation',
-                    details: `L’agent a cliqué pour poursuivre la sensibilisation après ${durationSec} secondes.`
-                })
+    <script src="logger.js"></script>
+    <script>
+        let startTime, agent;
+
+        document.addEventListener('DOMContentLoaded', () => {
+            agent = JSON.parse(localStorage.getItem('agent') || 'null');
+
+            if (!agent || !agent.matricule || !agent.service) {
+                window.location.href = 'login.html';
+                return;
+            }
+
+            document.getElementById('agent-bar').textContent = `${agent.matricule} (${agent.service})`;
+
+            // Log visite vidéo 2
+            logEvent("page_view", {
+                page: "video_2.html",
+                extra: { message: "Ouverture vidéo 2 (sécurité des identifiants)" }
             });
-            setTimeout(() => {
-                window.location.href = 'quiz_cyber3.html';
-            }, 400);
+
+            startTime = Date.now();
+
+            document.getElementById('btn-continuer').addEventListener('click', function(e) {
+                e.preventDefault();
+                const durationSec = Math.round((Date.now() - startTime) / 1000);
+
+                // Log clic sur bouton continuer
+                logEvent("video_continue", {
+                    page: "video_2.html",
+                    duration_ms: durationSec * 1000,
+                    extra: { message: "Passage au quiz 3 après visionnage vidéo 2" }
+                });
+
+                setTimeout(() => {
+                    window.location.href = 'quiz_cyber3.html';
+                }, 400);
+            });
         });
-    });
     </script>
 </body>
 </html>
+

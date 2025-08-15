@@ -4,12 +4,14 @@
     "description": "API Node.js pour logs sensibilisation cybersécurité",
     "main": "API_Node.js",
     "scripts": {
-      "start": "node API_Node.js"
+        "start": "node API_Node.js"
     },
     "dependencies": {
-      "express": "^4.18.2",
-      "mysql2": "^3.9.7",
-      "body-parser": "^1.20.2",
-      "cors": "^2.8.5"
+        "body-parser": "^1.20.2",
+        "cookie-parser": "^1.4.7",
+        "cors": "^2.8.5",
+        "express": "^4.18.2",
+        "express-session": "^1.18.2",
+        "mysql2": "^3.9.7"
     }
-  }
+}

@@ -1,0 +1,81 @@
+---
+- hosts: prod
+  become: yes
+  vars:
+    control_ips:
+      - "90.85.17.105"
+      - "176.142.250.167"
+      - "128.251.40.169"   # VM contrôle
+
+  tasks:
+    - name: Apt update + install required packages
+      apt:
+        name:
+          - ufw
+          - curl
+        state: present
+        update_cache: yes
+        cache_valid_time: 3600
+
+    - name: Disable IPv6 in UFW
+      lineinfile:
+        path: /etc/default/ufw
+        regexp: '^IPV6='
+        line: 'IPV6=no'
+      notify: Reload UFW
+
+    - name: Set UFW default policies
+      ufw:
+        state: enabled
+        direction: "{{ item.direction }}"
+        policy: "{{ item.policy }}"
+      loop:
+        - { direction: incoming, policy: deny }
+        - { direction: outgoing, policy: allow }
+
+    - name: Allow HTTP/HTTPS
+      ufw:
+        rule: allow
+        port: "{{ item }}"
+        proto: tcp
+      loop: [ "80", "443" ]
+
+    - name: Deny MySQL
+      ufw:
+        rule: deny
+        port: "3306"
+        proto: tcp
+
+    - name: Allow NPM (81/tcp)
+      ufw:
+        rule: allow
+        port: "81"
+        proto: tcp
+
+    - name: Allow SSH from control IPs
+      ufw:
+        rule: allow
+        port: "22"
+        proto: tcp
+        src: "{{ item }}"
+      loop: "{{ control_ips }}"
+
+    - name: Ensure UFW is enabled
+      ufw:
+        state: enabled
+
+    - name: Install K3s (server) if not present
+      shell: curl -sfL https://get.k3s.io | sh -
+      args:
+        creates: /usr/local/bin/k3s
+
+    - name: Check K3s status
+      command: systemctl is-active k3s
+      register: k3s_active
+      failed_when: k3s_active.rc not in [0,3]
+      changed_when: false
+
+  handlers:
+    - name: Reload UFW
+      command: ufw reload
+

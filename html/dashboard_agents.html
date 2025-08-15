@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tableau de bord – Activités agents (complet)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+  <style>
+    :root {
+      --c1: #27C0D4;
+      --c1d: #178899;
+      --bg: #f3f7fb;
+      --line: #e8eef5;
+      --txt: #102a43;
+      --mut: #6b7c93;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Roboto', Arial, sans-serif;
+      background: var(--bg);
+      color: var(--txt);
+    }
+    header {
+      background: linear-gradient(135deg, var(--c1), var(--c1d));
+      color: #fff;
+      padding: 26px 16px;
+    }
+    h1 {
+      margin: 0;
+      font-size: 1.9rem;
+      text-align: center;
+    }
+    .bar {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+      justify-content: center;
+      align-items: center;
+      padding: 14px;
+    }
+    input, select {
+      padding: 10px 12px;
+      border: 1px solid var(--line);
+      border-radius: 10px;
+      background: #fff;
+      min-width: 220px;
+    }
+    .btn {
+      background: var(--c1);
+      color: #fff;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+    .btn:hover { background: var(--c1d); }
+    .pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      background: #eafaff;
+      border: 1px solid #cdebf3;
+      color: #176b7a;
+      padding: 2px 10px;
+      border-radius: 999px;
+      font-size: .85rem;
+    }
+    .status { display: inline-flex; align-items: center; gap: 6px; }
+    .dot { width: 10px; height: 10px; border-radius: 50%; }
+    .ok { background: #2ecc71; }
+    .ko { background: #e74c3c; }
+    .idle { background: #f1c40f; }
+    .wrap {
+      max-width: 1400px;
+      margin: 0 auto 40px auto;
+      background: #fff;
+      border-radius: 16px;
+      box-shadow: 0 6px 20px rgba(0,0,0,.08);
+      overflow: auto;
+    }
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: .94rem;
+    }
+    thead {
+      position: sticky;
+      top: 0;
+      background: #e7f7fb;
+      z-index: 1;
+    }
+    th, td {
+      padding: 10px 12px;
+      border-bottom: 1px solid var(--line);
+      white-space: nowrap;
+    }
+    th {
+      color: #0f4c5c;
+      text-align: left;
+      user-select: none;
+      cursor: pointer;
+    }
+    tbody tr:hover { background: #fbfeff; }
+    .mut { color: var(--mut); }
+    .right { text-align: right; }
+    .small { font-size: .85rem; }
+    .controls-sub {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      align-items: center;
+      padding: 0 14px 12px;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>Tableau de bord – Activités agents (complet) <span class="dot ok" id="apiDot" title="API"></span></h1>
+  </header>
+
+  <div class="bar">
+    <input id="q" type="text" placeholder="Recherche (matricule, service, type, page, détail…)" />
+    <select id="svc"><option value="">— Tous les services —</option></select>
+    <select id="etype">
+      <option value="">— Tous les types —</option>
+      <option value="login_success">login_success</option>
+      <option value="login_failed">login_failed</option>
+      <option value="ui_click">ui_click</option>
+      <option value="quiz_start">quiz_start</option>
+      <option value="quiz_submit">quiz_submit</option>
+      <option value="quiz_retry">quiz_retry</option>
+      <option value="video_progress">video_progress</option>
+      <option value="logout">logout</option>
+    </select>
+    <select id="limit">
+      <option value="500">500 dernières</option>
+      <option value="1000">1000</option>
+      <option value="2000">2000</option>
+      <option value="5000" selected>5000 (max)</option>
+    </select>
+    <button class="btn" id="refresh">Rafraîchir</button>
+    <button class="btn" id="export">Exporter CSV</button>
+  </div>
+
+  <div class="controls-sub small">
+    <label class="status">
+      <span class="dot idle" id="sseDot"></span> Temps réel (SSE)
+      <input id="live" type="checkbox" style="margin-left:6px" checked />
+    </label>
+    <span class="pill" id="count">0 évènement(s)</span>
+    <span class="pill" id="lastUpdate">—</span>
+  </div>
+
+  <div class="wrap">
+    <table id="tbl">
+      <thead>
+        <tr>
+          <th data-k="matricule">Matricule</th>
+          <th data-k="service">Service</th>
+          <th data-k="type">Type</th>
+          <th data-k="page">Page</th>
+          <th data-k="element">Élément</th>
+          <th class="right" data-k="score">Score</th>
+          <th class="right" data-k="duration_ms">Durée (ms)</th>
+          <th class="right" data-k="attempt">Tent.</th>
+          <th class="right" data-k="video_position_ms">Vidéo (ms)</th>
+          <th data-k="details">Détails</th>
+          <th data-k="date">Date</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+
+  <script>
+    const TBL = document.querySelector('#tbl tbody');
+    const Q = document.getElementById('q');
+    const SVC = document.getElementById('svc');
+    const ET = document.getElementById('etype');
+    const LIMIT = document.getElementById('limit');
+    const COUNT = document.getElementById('count');
+    const LAST = document.getElementById('lastUpdate');
+    const SSE_DOT = document.getElementById('sseDot');
+    const API_DOT = document.getElementById('apiDot');
+    let all = [], sortKey = 'date', sortDir = -1, es = null;
+
+    const ORIGIN = window.location.origin;
+    const URL_ACT = ORIGIN + '/api/activities?limit=';
+    const URL_EVT = ORIGIN + '/api/events?limit=';
+    const URL_SSE = ORIGIN + '/api/activities/stream';
+
+    function toActivity(o){
+      const matricule = o.matricule || '';
+      const service = o.service || o.service_nom || '';
+      const type = o.type_activite || o.event_type || '';
+      const page = o.page || '', element = o.element || '';
+      const score = numOrNull(o.score), duration = numOrNull(o.duration_ms);
+      const attempt = numOrNull(o.attempt), vpos = numOrNull(o.video_position_ms);
+      const date = o.date_heure || o.created_at || '';
+
+      // Parsing de extra
+      let extraObj = {};
+      if (typeof o.extra === 'string') {
+        try { extraObj = JSON.parse(o.extra); } catch {}
+      } else if (typeof o.extra === 'object' && o.extra !== null) {
+        extraObj = o.extra;
+      }
+
+      // Détermination du détail
+      let details = o.details 
+        || extraObj.details 
+        || extraObj.message 
+        || (Array.isArray(extraObj.answers) ? extraObj.answers.join(' | ') : '');
+
+      // Si rien trouvé, fallback sur l’ancienne logique
+      if(!details){
+        if(o.event_type === 'login_success') details = 'Connexion réussie';
+        else if(o.event_type === 'login_failed') details = 'Connexion échouée';
+        else if(o.event_type === 'ui_click') details = `Click ${element}`;
+        else if(o.event_type === 'quiz_start') details = `Quiz start (${page})`;
+        else if(o.event_type === 'quiz_submit') details = `Score: ${score??''}${score!=null?'/?':''} Durée(ms): ${duration??''} Tentative: ${attempt??''}`;
+        else if(o.event_type === 'quiz_retry') details = `Retry tentative ${attempt??''}`;
+        else if(o.event_type === 'video_progress') details = `Video pos(ms): ${vpos??''} +${duration??''}ms`;
+      }
+
+      return {matricule, service, type, page, element, score, duration_ms:duration, attempt, video_position_ms:vpos, details, date};
+    }
+
+    function numOrNull(v){ const n=Number(v); return Number.isFinite(n)?n:null }
+    function fmtDate(d){ try{ return new Date(d).toLocaleString() }catch{ return d||'' } }
+    function text(v){ return (v==null?'':String(v)) }
+
+    function render(){
+      const q = (Q.value||'').toLowerCase(), svc = SVC.value||'', et = ET.value||'';
+      let rows = all.filter(r=>{
+        const okSvc = !svc || r.service===svc;
+        const okEt  = !et  || r.type===et;
+        const bag = (r.matricule+' '+r.service+' '+r.type+' '+r.page+' '+r.element+' '+r.details).toLowerCase();
+        return (!q || bag.includes(q)) && okSvc && okEt;
+      }).sort((a,b)=>{
+        const va = a[sortKey] ?? '', vb = b[sortKey] ?? '';
+        return (va<vb?-1:va>vb?1:0) * sortDir;
+      });
+      TBL.innerHTML = '';
+      for(const r of rows){
+        TBL.innerHTML += `<tr>
+          <td><b>${text(r.matricule)}</b></td>
+          <td>${r.service?`<span class="pill">${text(r.service)}</span>`:''}</td>
+          <td>${text(r.type)}</td>
+          <td class="mut">${text(r.page)}</td>
+          <td class="mut">${text(r.element)}</td>
+          <td class="right">${r.score??''}</td>
+          <td class="right">${r.duration_ms??''}</td>
+          <td class="right">${r.attempt??''}</td>
+          <td class="right">${r.video_position_ms??''}</td>
+          <td>${text(r.details)}</td>
+          <td class="small">${fmtDate(r.date)}</td>
+        </tr>`;
+      }
+      COUNT.textContent = `${rows.length} évènement(s) (affichés)`;
+    }
+
+    async function fetchJSON(url){
+      const r = await fetch(url, {credentials:'include'});
+      if(!r.ok) throw new Error(r.status+' '+r.statusText);
+      return r.json();
+    }
+
+    async function loadAll(){
+      const limit = Number(LIMIT.value||5000);
+      API_DOT.className = 'dot idle';
+      try {
+        const data = await fetchJSON(URL_ACT + limit);
+        all = Array.isArray(data) ? data.map(toActivity) : [];
+        if(all.length === 0){
+          const raw = await fetchJSON(URL_EVT + limit);
+          all = Array.isArray(raw) ? raw.map(toActivity) : [];
+        }
+        const uniqSvc = [...new Set(all.map(r=>r.service).filter(Boolean))].sort();
+        SVC.innerHTML = '<option value="">— Tous les services —</option>' +
+          uniqSvc.map(s=>`<option value="${s}">${s}</option>`).join('');
+        LAST.textContent = 'Maj: '+new Date().toLocaleTimeString();
+        API_DOT.className = 'dot ok';
+        render();
+      } catch(e){
+        console.error('Erreur API', e);
+        API_DOT.className = 'dot ko';
+        LAST.textContent = 'Erreur chargement';
+        TBL.innerHTML = `<tr><td colspan="11" class="small">Erreur de chargement : ${e.message}</td></tr>`;  
+      }
+    }
+
+    function startSSE(){
+      stopSSE();
+      try {
+        es = new EventSource(URL_SSE, {withCredentials:true});
+        SSE_DOT.className = 'dot ok';
+        es.onmessage = (ev)=>{
+          try {
+            const obj = JSON.parse(ev.data);
+            all.unshift(toActivity(obj));
+            if(all.length > 5000) all.length = 5000;
+            LAST.textContent = 'Maj: '+new Date().toLocaleTimeString()+' (+1)';
+            render();
+          } catch{}
+        };
+        es.onerror = ()=>{ SSE_DOT.className = 'dot ko'; };
+      } catch { SSE_DOT.className = 'dot ko'; }
+    }
+    function stopSSE(){
+      if(es) try{ es.close(); } catch{} es = null;
+      SSE_DOT.className = 'dot idle';
+    }
+
+    function exportCSV(){
+      const headers = ['matricule','service','type','page','element','score','duration_ms','attempt','video_position_ms','details','date'];
+      const lines = [headers.join(',')];
+      const q = (Q.value||'').toLowerCase(), svc = SVC.value||'', et = ET.value||'';
+      let rows = all.filter(r=>{
+        const okSvc = !svc || r.service===svc;
+        const okEt  = !et  || r.type===et;
+        const bag = (r.matricule+' '+r.service+' '+r.type+' '+r.page+' '+r.element+' '+r.details).toLowerCase();
+        return (!q || bag.includes(q)) && okSvc && okEt;
+      }).sort((a,b)=>{
+        const va = a[sortKey] ?? '', vb = b[sortKey] ?? '';
+        return (va<vb?-1:va>vb?1:0) * sortDir;
+      });
+      for(const r of rows){
+        const arr = [r.matricule, r.service, r.type, r.page, r.element,
+          r.score??'', r.duration_ms??'', r.attempt??'', r.video_position_ms??'',
+          (r.details||'').replace(/\n/g,' ').replace(/"/g,'""'), r.date];
+        lines.push(arr.map(v=>`"${v}"`).join(','));
+      }
+      const blob = new Blob([lines.join('\n')], {type:'text/csv;charset=utf-8;'});
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a'); a.href = url; a.download = 'activities.csv';
+      document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+    }
+
+    document.getElementById('refresh').addEventListener('click', loadAll);
+    document.getElementById('export').addEventListener('click', exportCSV);
+    [Q, SVC, ET].forEach(el=>el.addEventListener('input', render));
+    LIMIT.addEventListener('change', loadAll);
+    document.querySelectorAll('th[data-k]').forEach(th=>{
+      th.addEventListener('click', ()=>{
+        const k = th.getAttribute('data-k');
+        sortKey = k; sortDir = (sortKey === k ? -sortDir : (k==='date'?-1:1));
+        render();
+      });
+    });
+    document.getElementById('live').addEventListener('change', e=>{
+      e.target.checked ? startSSE() : stopSSE();
+    });
+
+    loadAll();
+    startSSE();
+  </script>
+</body>
+</html>
+

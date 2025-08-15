@@ -87,35 +87,41 @@
         <button id="btn-continuer" class="main-btn">Continuer la sensibilisation</button>
     </main>
 
+    <script src="matricule.js"></script>
     <script>
-    // Redirige vers login.html si non connecté
     document.addEventListener('DOMContentLoaded', () => {
         const agentData = localStorage.getItem('agent');
         const agentInfoDiv = document.getElementById('agentInfo');
         const agentNameSpan = document.getElementById('agentName');
+
         if (agentData) {
             const agent = JSON.parse(agentData);
             agentInfoDiv.style.display = "flex";
-            agentNameSpan.textContent = `  ${agent.nom} (${agent.service})`;
+            agentNameSpan.textContent = `${agent.service} - ${agent.matricule}`;
         } else {
-            // REDIRECTION CORRIGÉE POUR LE PORT ET L'URL
+            // Aucun agent → retour vers page de connexion
             window.location.href = window.location.origin + '/login.html';
-            // Ou pour forcer 8080 (décommente la ligne suivante si besoin):
-            // window.location.href = 'http://128.251.40.169:8080/login.html';
+            return;
         }
 
-        // Gestion déconnexion
         document.getElementById('logoutBtn').addEventListener('click', () => {
             localStorage.removeItem('agent');
             window.location.href = window.location.origin + '/login.html';
-            // Ou window.location.href = 'http://128.251.40.169:8080/login.html';
         });
 
-        // Bouton Continuer la sensibilisation
         document.getElementById('btn-continuer').addEventListener('click', () => {
-            window.location.href = 'phishing_edenred.html'; // à adapter selon la page cible
+            const agent = JSON.parse(localStorage.getItem('agent'));
+
+            // Enregistrer l'activité si API disponible
+            if (typeof enregistrerActivite === "function") {
+                enregistrerActivite(agent.matricule, "navigation", "Accès à la page phishing Edenred");
+            }
+
+            // Aller à la prochaine étape
+            window.location.href = 'phishing_edenred.html';
         });
     });
     </script>
 </body>
 </html>
+

@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <title>Au revoir</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">   
+  <style>
+    body {
+      background: #f2f8fc;
+      font-family: 'Roboto', Arial, sans-serif;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+      text-align: center;
+    }
+    h1 {
+      color: #27C0D4;
+      font-size: 2em;
+      max-width: 90%;
+      line-height: 1.6em;
+    }
+  </style>
+</head>
+<body>
+  <h1 id="message">Merci pour votre participation !<br>À bientôt.</h1>
+
+  <script src="logger.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const agent = JSON.parse(localStorage.getItem('agent') || 'null');
+
+      if (!agent || !agent.matricule || !agent.service) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      document.getElementById('message').innerHTML =
+        `Merci <b>${agent.matricule} (${agent.service})</b> pour votre participation !<br>À bientôt.`;       
+
+      // Log de fin de session
+      logEvent("logout", {
+        page: "bye.html",
+        extra: { message: "L’agent a terminé la session et quitté le parcours" }
+      });
+
+      // Nettoyage si nécessaire
+      // localStorage.removeItem('agent');
+      // localStorage.removeItem('done');
+    });
+  </script>
+</body>
+</html>
+

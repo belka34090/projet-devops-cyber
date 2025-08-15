@@ -12,23 +12,27 @@ volumes:
   npm_letsencrypt:
 
 services:
-  # Reverse proxy + SSL (UI d’admin sur :81)
+  # Reverse proxy + SSL (UI d'admin :81)
   proxy:
     image: jc21/nginx-proxy-manager:latest
     container_name: devops-cyber-proxy
     restart: unless-stopped
     ports:
-      - "80:80"      # HTTP (redirigé vers HTTPS)
-      - "81:81"      # UI d’admin NPM
-      - "443:443"    # HTTPS
+      - "80:80"
+      - "443:443"
+      - "81:81" # Interface admin NPM (penser à sécuriser)
     networks:
       - proxy
       - internal
     volumes:
       - npm_data:/data
       - npm_letsencrypt:/etc/letsencrypt
+      - ./nginx:/etc/nginx/auth # Authentification personnalisée
+    depends_on:
+      - site
+      - api
 
-  # Site statique servi par Nginx (non exposé publiquement; le proxy l'atteint par le réseau)
+  # Site statique (servi derrière NPM)
   site:
     build:
       context: .
@@ -41,12 +45,12 @@ services:
       - ./html:/usr/share/nginx/html:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
     healthcheck:
-      test: ["CMD-SHELL", "wget -qO- http://localhost || exit 1"]
+      test: ["CMD-SHELL", "wget -qO- http://localhost/index.html || exit 1"]
       interval: 30s
       timeout: 5s
       retries: 3
 
-  # API Node.js (non exposée publiquement; le proxy l'atteint par le réseau)
+  # API Node.js (derrière NPM sur /api/)
   api:
     build:
       context: ./backend
@@ -55,13 +59,8 @@ services:
     restart: unless-stopped
     networks:
       - internal
-    environment:
-      DB_HOST: db
-      DB_PORT: "3306"
-      DB_NAME: ${MYSQL_DATABASE}
-      DB_USER: ${MYSQL_USER}
-      DB_PASSWORD: ${MYSQL_PASSWORD}
-      # ajoute ici d'autres variables (CORS_ORIGIN, NODE_ENV, etc.)
+    env_file:
+      - /home/dsi34/secrets-test/prod.env
     depends_on:
       - db
     healthcheck:
@@ -70,22 +69,20 @@ services:
       timeout: 5s
       retries: 3
 
-  # Base de données (UNIQUEMENT réseau interne; plus de 3306 exposé)
+  # Base de données MariaDB
   db:
     image: mariadb:latest
     container_name: devops-cyber-db
     restart: unless-stopped
     networks:
       - internal
-    environment:
-      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
-      MYSQL_DATABASE: ${MYSQL_DATABASE}
-      MYSQL_USER: ${MYSQL_USER}
-      MYSQL_PASSWORD: ${MYSQL_PASSWORD}
+    env_file:
+      - /home/dsi34/secrets-test/prod.env
     volumes:
       - db_data:/var/lib/mysql
     healthcheck:
-      test: ["CMD-SHELL", "mysqladmin ping -h localhost -p${MYSQL_ROOT_PASSWORD} --silent"]
+      test: ["CMD-SHELL", "mariadb-admin ping -h localhost -p${MYSQL_ROOT_PASSWORD} --silent"]
       interval: 30s
       timeout: 5s
       retries: 5
+

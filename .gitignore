@@ -1,13 +1,50 @@
-# Terraform
+# ===== VM / SYSTEM =====
+.bash_history
+.cache/
+.config/
+.docker/
+.kube/
+.lesshst
+.local/
+.npm/
+.profile
+.ssh/
+.sudo_as_admin_successful
+.viminfo
+.terraform.d/
+
+# ===== NODE =====
+node_modules/
+npm-debug.log*
+npm_data_backup_*.tgz
+
+# ===== DOCKER =====
+docker_data/
+*.log
+
+# ===== TERRAFORM =====
 .terraform/
+**/.terraform/
 terraform.tfstate
 terraform.tfstate.*
 *.tfstate.backup
 *.tfvars
+*.tfvars.json
 crash.log
 crash.*.log
-# Terraform (ne jamais versionner)
-.terraform/
-**/.terraform/
-# Providers copiés par erreur dans le projet
 terraform/**/providers/
+
+# ===== SECRETS =====
+.env
+secrets-test/
+secrets-test/mysql-secrets.yml
+secrets-test/prod.env
+cookie.txt
+
+# ===== BACKUPS =====
+backups/
+html/backup_activity_events.sql
+
+# ===== TEMP / AUTRES =====
+e down
+

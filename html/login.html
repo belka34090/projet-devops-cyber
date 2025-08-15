@@ -6,7 +6,11 @@
     <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500&display=swap" rel="stylesheet"> 
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <style>
-        body { font-family: 'Roboto', sans-serif; background: #f4f7fa; margin: 0; }
+        body {
+            font-family: 'Roboto', sans-serif;
+            background: #f4f7fa;
+            margin: 0;
+        }
         .container {
             max-width: 400px;
             margin: 80px auto;
@@ -100,9 +104,11 @@
             const data = await response.json();
 
             if (response.ok && data.success) {
-                // Stocker l'agent connecté
-                localStorage.setItem('agent', JSON.stringify(data.agent));
-                // Redirection propre sans IP/port en dur
+                localStorage.setItem('agent', JSON.stringify({
+                    matricule: data.agent.matricule,
+                    service: data.agent.service
+                }));
+                console.log("Connexion réussie :", data.agent);
                 window.location.href = "/index.html";
             } else {
                 errorDiv.textContent = "Matricule ou mot de passe incorrect.";
@@ -116,3 +122,4 @@
     </script>
 </body>
 </html>
+

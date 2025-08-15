@@ -10,7 +10,7 @@
         .top-bar {
             background: linear-gradient(135deg, #27C0D4, #178899);
             color: #fff;
-            padding: 16px 0;
+            padding: 16px 32px;
             text-align: right;
             font-size: 1.1em;
             font-weight: 500;
@@ -32,105 +32,14 @@
         .explain { margin-top: 30px; padding: 18px 18px 4px 18px; background: #f4fcff; border-radius: 7px; font-size: 1em; color: #134861;}
         .explain strong { color: #27C0D4;}
     </style>
-    <script>
-      let startTime, agent;
-      document.addEventListener('DOMContentLoaded', () => {
-        agent = JSON.parse(localStorage.getItem('agent') || 'null');
-        const agentBar = document.getElementById('agent-bar');
-        if (agent && agent.nom && agent.service) {
-            agentBar.textContent = `  ${agent.nom} (${agent.service})`;
-        } else {
-            window.location.href = 'login.html';
-        }
-
-        // Log visite
-        fetch('/api/activities', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                matricule: agent.matricule,
-                action: 'quiz_3_visite',
-                details: 'L’agent a ouvert le quiz n°3.'
-            })
-        });
-
-        // Chrono de présence
-        startTime = Date.now();
-      });
-
-      function corrigerQuiz(event) {
-        event.preventDefault();
-        let score = 0;
-        let q1 = document.querySelector('input[name="q1"]:checked')?.value;
-        let q2 = document.querySelector('input[name="q2"]:checked')?.value;
-        let q3 = document.querySelector('input[name="q3"]:checked')?.value;
-
-        let correct = {q1:"c", q2:"b", q3:"a"};
-        let answers = [];
-        if (q1 === correct.q1) { score++; answers.push("Q1:correct("+q1+")"); } else { answers.push("Q1:faux("+q1+")"); }
-        if (q2 === correct.q2) { score++; answers.push("Q2:correct("+q2+")"); } else { answers.push("Q2:faux("+q2+")"); }
-        if (q3 === correct.q3) { score++; answers.push("Q3:correct("+q3+")"); } else { answers.push("Q3:faux("+q3+")"); }
-
-        let result = document.getElementById("result");
-        let explanations = document.getElementById("explanations");
-        let retry = document.getElementById("retry");
-        let next = document.getElementById("next");
-
-        // Masquer le bouton submit
-        document.querySelector('.submit-btn').style.display = 'none';
-
-        // Log validation avec temps, score, réponses
-        const durationSec = Math.round((Date.now() - startTime) / 1000);
-        const detailsLog = `Durée: ${durationSec}s | Score: ${score}/3 | Réponses: ${answers.join(', ')}`;   
-        fetch('/api/activities', {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-                matricule: agent.matricule,
-                action: 'quiz_3_validation',
-                details: detailsLog
-            })
-        });
-
-        if (score === 3) {
-          result.textContent = "Bravo ! Vous avez réussi le quiz !";
-          result.className = "result success";
-          explanations.innerHTML = `
-            <strong>Réponses et explications :</strong><br>
-            1️⃣ <b>Ne jamais ouvrir un fichier joint d’un mail suspect.</b><br>
-            2️⃣ <b>Ne jamais installer de logiciel sur demande d’un inconnu : contactez toujours votre DSI of
-ficielle.</b><br>
-            3️⃣ <b>Ouvrir une pièce jointe suspecte peut installer un virus ou un ransomware.</b>
-          `;
-          retry.style.display = 'none';
-          next.style.display = 'block';
-          setTimeout(() => { window.location.href="video_3.html"; }, 2500);
-        } else {
-          result.textContent = `Vous avez eu ${score}/3 bonnes réponses.`;
-          result.className = "result fail";
-          explanations.innerHTML = `
-            <strong>Réponses et explications :</strong><br>
-            1️⃣ Ne jamais ouvrir une pièce jointe sans être certain de l’expéditeur.<br>
-            2️⃣ Tout support inconnu = danger : raccrochez et prévenez la DSI.<br>
-            3️⃣ Le plus grand risque reste la compromission (virus/ransomware).
-          `;
-          retry.style.display = 'block';
-          next.style.display = 'none';
-        }
-      }
-      function recommencer() {
-        window.location.reload();
-      }
-    </script>
 </head>
 <body>
 <div class="top-bar" id="agent-bar"></div>
 <div class="quiz-container">
     <div class="quiz-title">Quiz 3 — Vigilance pièces jointes & faux support</div>
-    <form onsubmit="corrigerQuiz(event)">
+    <form id="quiz-form">
         <div class="question">
-            1️⃣ Vous recevez un mail vous promettant une prime exceptionnelle et vous demandant d’ouvrir un f
-ichier joint. Que faites-vous ?
+            1️⃣ Vous recevez un mail vous promettant une prime exceptionnelle et vous demandant d’ouvrir un fichier joint. Que faites-vous ?
         </div>
         <div class="answers">
             <label><input type="radio" name="q1" value="a" required> J’ouvre immédiatement le fichier pour profiter de la prime.</label>
@@ -139,8 +48,7 @@ ichier joint. Que faites-vous ?
         </div>
 
         <div class="question">
-            2️⃣ Un support informatique inconnu vous contacte par téléphone pour régler un incident et vous d
-emande d’installer un logiciel. Que faites-vous ?
+            2️⃣ Un support informatique inconnu vous contacte par téléphone pour régler un incident et vous demande d’installer un logiciel. Que faites-vous ?
         </div>
         <div class="answers">
             <label><input type="radio" name="q2" value="a" required> J’installe le logiciel pour les aider.</label>
@@ -149,11 +57,10 @@ emande d’installer un logiciel. Que faites-vous ?
         </div>
 
         <div class="question">
-            3️⃣ Quel est le risque principal d’ouvrir une pièce jointe suspecte ?
+            3️⃣ Quel est le risque principal d’ouvrir une pièce jointe suspecte ?
         </div>
         <div class="answers">
-            <label><input type="radio" name="q3" value="a" required> Installer un virus ou un ransomware sur 
-mon poste.</label>
+            <label><input type="radio" name="q3" value="a" required> Installer un virus ou un ransomware sur mon poste.</label>
             <label><input type="radio" name="q3" value="b"> Recevoir des publicités.</label>
             <label><input type="radio" name="q3" value="c"> Remplir mon disque dur plus vite.</label>        
         </div>
@@ -162,8 +69,91 @@ mon poste.</label>
     </form>
     <div id="result" class="result"></div>
     <div id="explanations" class="explain"></div>
-    <button id="retry" class="retry-btn" style="display:none;" onclick="recommencer()">Reprendre le quiz</button>
+    <button id="retry" class="retry-btn" style="display:none;">Reprendre le quiz</button>
     <a id="next" class="next-btn" style="display:none;" href="video_3.html">Voir la vidéo explicative</a>    
 </div>
+
+<script src="logger.js"></script>
+<script>
+let startTime, agent;
+
+document.addEventListener('DOMContentLoaded', () => {
+    agent = JSON.parse(localStorage.getItem('agent') || 'null');
+    if (!agent || !agent.matricule || !agent.service) {
+        window.location.href = 'login.html';
+        return;
+    }
+
+    document.getElementById('agent-bar').textContent = `${agent.matricule} (${agent.service})`;
+
+    // Log ouverture quiz 3
+    logEvent("quiz_view", {
+        page: "quiz_cyber3.html",
+        extra: { message: "Ouverture du quiz n°3" }
+    });
+
+    startTime = Date.now();
+
+    document.getElementById('quiz-form').addEventListener('submit', corrigerQuiz);
+    document.getElementById('retry').addEventListener('click', () => window.location.reload());
+});
+
+function corrigerQuiz(event) {
+    event.preventDefault();
+    let score = 0;
+    let q1 = document.querySelector('input[name="q1"]:checked')?.value;
+    let q2 = document.querySelector('input[name="q2"]:checked')?.value;
+    let q3 = document.querySelector('input[name="q3"]:checked')?.value;
+
+    let correct = {q1:"c", q2:"b", q3:"a"};
+    let answers = [];
+    if (q1 === correct.q1) { score++; answers.push("Q1:correct("+q1+")"); } else { answers.push("Q1:faux("+q1+")"); }
+    if (q2 === correct.q2) { score++; answers.push("Q2:correct("+q2+")"); } else { answers.push("Q2:faux("+q2+")"); }
+    if (q3 === correct.q3) { score++; answers.push("Q3:correct("+q3+")"); } else { answers.push("Q3:faux("+q3+")"); }
+
+    const result = document.getElementById("result");
+    const explanations = document.getElementById("explanations");
+    const retry = document.getElementById("retry");
+    const next = document.getElementById("next");
+
+    document.querySelector('.submit-btn').style.display = 'none';
+
+    const durationSec = Math.round((Date.now() - startTime) / 1000);
+
+    // Log validation quiz 3
+    logEvent("quiz_submit", {
+        page: "quiz_cyber3.html",
+        duration_ms: durationSec * 1000,
+        score: score,
+        extra: { answers: answers }
+    });
+
+    if (score === 3) {
+        result.textContent = "Bravo ! Vous avez réussi le quiz !";
+        result.className = "result success";
+        explanations.innerHTML = `
+            <strong>Réponses et explications :</strong><br>
+            1️⃣ <b>Ne jamais ouvrir un fichier joint d’un mail suspect.</b><br>
+            2️⃣ <b>Ne jamais installer de logiciel sur demande d’un inconnu : contactez toujours votre DSI officielle.</b><br>
+            3️⃣ <b>Ouvrir une pièce jointe suspecte peut installer un virus ou un ransomware.</b>
+        `;
+        retry.style.display = 'none';
+        next.style.display = 'block';
+        setTimeout(() => { window.location.href="video_3.html"; }, 2500);
+    } else {
+        result.textContent = `Vous avez eu ${score}/3 bonnes réponses.`;
+        result.className = "result fail";
+        explanations.innerHTML = `
+            <strong>Réponses et explications :</strong><br>
+            1️⃣ Ne jamais ouvrir une pièce jointe sans être certain de l’expéditeur.<br>
+            2️⃣ Tout support inconnu = danger : raccrochez et prévenez la DSI.<br>
+            3️⃣ Le plus grand risque reste la compromission (virus/ransomware).
+        `;
+        retry.style.display = 'block';
+        next.style.display = 'none';
+    }
+}
+</script>
 </body>
 </html>
+

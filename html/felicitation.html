@@ -1,86 +1,108 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-    <meta charset="UTF-8">
-    <title>Félicitations – Sensibilisation réussie</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet"> 
-    <style>
-        body { background: #f2f8fc; font-family: 'Roboto', Arial, sans-serif; margin: 0; }
-        .top-bar {
-            background: linear-gradient(135deg, #27C0D4, #178899);
-            color: #fff;
-            padding: 16px 0;
-            text-align: right;
-            font-size: 1.1em;
-            font-weight: 500;
-            letter-spacing: 0.5px;
-        }
-        .main-container { max-width: 600px; margin: 60px auto; background: #fff; border-radius: 18px; box-shadow: 0 4px 20px rgba(0,0,0,0.11); padding: 46px 32px 38px 32px; text-align: center; }
-        .trophy { font-size: 3.3em; margin-bottom: 10px; color: #27C0D4; }
-        .title { font-size: 2.2em; color: #27C0D4; font-weight: bold; margin-bottom: 16px; }
-        .subtitle { font-size: 1.18em; color: #333; margin-bottom: 30px; }
-        .summary { background: #eafdff; color: #178899; border-radius: 8px; padding: 18px; margin-bottom: 28px; font-size: 1.13em;}
-        .advice { color: #2c3e50; font-size: 1.07em; margin-bottom: 24px; }
-        .btn-print, .btn-home {
-            background: #27C0D4; color: #fff; border: none; border-radius: 7px;
-            padding: 13px 0; width: 100%; font-size: 1.08em; font-weight: bold;
-            cursor: pointer; margin-top: 15px; margin-bottom: 8px; transition: background 0.2s; display: block; text-decoration: none; text-align: center;
-        }
-        .btn-print:hover, .btn-home:hover { background: #178899; }
-        @media (max-width: 650px) { .main-container { padding: 18px 4vw 18px 4vw; } .title { font-size: 1.3em;} }
-    </style>
-    <script>
-      function imprimerPage() { window.print(); }
-      document.addEventListener('DOMContentLoaded', () => {
-        // Affiche nom/service agent en haut
-        const agent = JSON.parse(localStorage.getItem('agent') || 'null');
-        const agentBar = document.getElementById('agent-bar');
-        if (agent && agent.nom && agent.service) {
-            agentBar.textContent = `  ${agent.nom} (${agent.service})`;
-        }
-        // Log fin de sensibilisation (optionnel, une seule fois)
-        if (agent && !localStorage.getItem('done')) {
-            fetch('/api/activities', {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({
-                    matricule: agent.matricule,
-                    action: 'sensibilisation_terminee',
-                    details: 'L’agent a terminé tout le parcours de sensibilisation.'
-                })
-            });
-            localStorage.setItem('done', '1');
-        }
-      });
-    </script>
+  <meta charset="UTF-8">
+  <title>Félicitations – Sensibilisation réussie</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;700&display=swap" rel="stylesheet">   
+  <style>
+    body { background: #f2f8fc; font-family: 'Roboto', Arial, sans-serif; margin: 0; }
+    .top-bar {
+      background: linear-gradient(135deg, #27C0D4, #178899);
+      color: #fff;
+      padding: 16px 32px;
+      text-align: right;
+      font-size: 1.1em;
+      font-weight: 500;
+      letter-spacing: 0.5px;
+    }
+    .main-container {
+      max-width: 600px;
+      margin: 60px auto;
+      background: #fff;
+      border-radius: 18px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.11);
+      padding: 46px 32px 38px 32px;
+      text-align: center;
+    }
+    .trophy { font-size: 3.3em; margin-bottom: 10px; color: #27C0D4; }
+    .title { font-size: 2.2em; color: #27C0D4; font-weight: bold; margin-bottom: 16px; }
+    .subtitle { font-size: 1.18em; color: #333; margin-bottom: 30px; }
+    .summary {
+      background: #eafdff;
+      color: #178899;
+      border-radius: 8px;
+      padding: 18px;
+      margin-bottom: 28px;
+      font-size: 1.13em;
+    }
+    .advice { color: #2c3e50; font-size: 1.07em; margin-bottom: 24px; }
+    .btn-print, .btn-home {
+      background: #27C0D4; color: #fff; border: none; border-radius: 7px;
+      padding: 13px 0; width: 100%; font-size: 1.08em; font-weight: bold;
+      cursor: pointer; margin-top: 15px; margin-bottom: 8px; transition: background 0.2s;
+      display: block; text-decoration: none; text-align: center;
+    }
+    .btn-print:hover, .btn-home:hover { background: #178899; }
+    @media (max-width: 650px) {
+      .main-container { padding: 18px 4vw; }
+      .title { font-size: 1.3em;}
+    }
+  </style>
 </head>
 <body>
-<div class="top-bar" id="agent-bar"></div>
-<div class="main-container">
-    <div class="trophy"><</div>
-    <div class="title">Félicitations !</div>
+  <div class="top-bar" id="agent-bar"></div>
+
+  <div class="main-container">
+    <div class="trophy">���</div>
+    <div class="title">Félicitations !</div>
     <div class="subtitle">
-        Vous avez terminé avec succès le parcours de sensibilisation à la cybersécurité.<br>
-        Votre vigilance protège non seulement <b>vos données</b> mais aussi <b>toute la collectivité</b>.    
+      Vous avez terminé avec succès le parcours de sensibilisation à la cybersécurité.<br>
+      Votre vigilance protège non seulement <b>vos données</b> mais aussi <b>toute la collectivité</b>.      
     </div>
+
     <div class="summary">
-        <b>Ce que vous avez appris :</b>
-        <ul style="text-align:left; margin: 20px auto 0 20px;">
-            <li>Reconnaître un mail de phishing et ne jamais cliquer sur un lien douteux</li>
-            <li>Utiliser des mots de passe uniques et robustes</li>
-            <li>Refuser tout partage d’identifiants, même à un collègue</li>
-            <li>Ne jamais ouvrir une pièce jointe ou installer un logiciel sur demande d’un inconnu</li>     
-            <li>Signaler immédiatement toute situation suspecte à la DSI</li>
-        </ul>
+      <b>Ce que vous avez appris :</b>
+      <ul style="text-align:left; margin: 20px auto 0 20px;">
+        <li>Reconnaître un mail de phishing et ne jamais cliquer sur un lien douteux</li>
+        <li>Utiliser des mots de passe uniques et robustes</li>
+        <li>Refuser tout partage d’identifiants, même à un collègue</li>
+        <li>Ne jamais ouvrir une pièce jointe ou installer un logiciel sur demande d’un inconnu</li>
+        <li>Signaler immédiatement toute situation suspecte à la DSI</li>
+      </ul>
     </div>
+
     <div class="advice">
-        <b>Bravo pour votre engagement !</b><br>
-        Continuez à rester vigilant au quotidien, et partagez ces réflexes autour de vous.<br>
-        <i>La sécurité de tous commence par chacun de nous.</i>
+      <b>Bravo pour votre engagement !</b><br>
+      Continuez à rester vigilant au quotidien, et partagez ces réflexes autour de vous.<br>
+      <i>La sécurité de tous commence par chacun de nous.</i>
     </div>
-    <button class="btn-print" onclick="imprimerPage()">  Imprimer/Enregistrer cette page</button>
-    <a href="index.html" class="btn-home">  Retour à l’accueil</a>
-</div>
+
+    <button class="btn-print" onclick="window.print()">  Imprimer / Enregistrer cette page</button>
+    <a href="bye.html" class="btn-home">✅ Terminer</a>
+  </div>
+
+  <script src="logger.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      const agent = JSON.parse(localStorage.getItem('agent') || 'null');
+      if (!agent || !agent.matricule || !agent.service) {
+        window.location.href = 'login.html';
+        return;
+      }
+
+      document.getElementById('agent-bar').textContent = `${agent.matricule} (${agent.service})`;
+
+      // Log fin de parcours si pas déjà fait
+      if (!localStorage.getItem('done')) {
+        logEvent("training_complete", {
+          page: "felicitation.html",
+          extra: { message: "Parcours de sensibilisation terminé" }
+        });
+        localStorage.setItem('done', '1');
+      }
+    });
+  </script>
 </body>
 </html>
+

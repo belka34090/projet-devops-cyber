@@ -9,7 +9,7 @@ terraform {
 
 provider "azurerm" {
   features {}
-  subscription_id = "09eef35c-bc62-40ab-8932-c171977b897b"
+  subscription_id = var.subscription_id
 }
 
 resource "azurerm_resource_group" "bbn_rg" {
@@ -18,10 +18,10 @@ resource "azurerm_resource_group" "bbn_rg" {
 }
 
 resource "azurerm_virtual_network" "bbn_vnet" {
-  name                = "bbn-vnet"
-  address_space       = ["10.1.0.0/16"]
-  location            = azurerm_resource_group.bbn_rg.location
-  resource_group_name = azurerm_resource_group.bbn_rg.name
+  name                 = "bbn-vnet"
+  address_space        = ["10.1.0.0/16"]
+  location             = azurerm_resource_group.bbn_rg.location
+  resource_group_name  = azurerm_resource_group.bbn_rg.name
 }
 
 resource "azurerm_subnet" "bbn_subnet" {
@@ -32,9 +32,9 @@ resource "azurerm_subnet" "bbn_subnet" {
 }
 
 resource "azurerm_network_security_group" "bbn_nsg" {
-  name                = "bbn-nsg"
-  location            = azurerm_resource_group.bbn_rg.location
-  resource_group_name = azurerm_resource_group.bbn_rg.name
+  name                 = "bbn-nsg"
+  location             = azurerm_resource_group.bbn_rg.location
+  resource_group_name  = azurerm_resource_group.bbn_rg.name
 
   security_rule {
     name                       = "Allow-SSH"
@@ -44,7 +44,7 @@ resource "azurerm_network_security_group" "bbn_nsg" {
     protocol                   = "Tcp"
     source_port_range          = "*"
     destination_port_range     = "22"
-    source_address_prefix      = "*"
+    source_address_prefixes    = var.ssh_allowed_ips
     destination_address_prefix = "*"
   }
 }
@@ -55,17 +55,17 @@ resource "azurerm_subnet_network_security_group_association" "bbn_subnet_assoc" 
 }
 
 resource "azurerm_public_ip" "bbn_public_ip" {
-  name                = "bbn-public-ip"
-  location            = azurerm_resource_group.bbn_rg.location
-  resource_group_name = azurerm_resource_group.bbn_rg.name
-  allocation_method   = "Static"
-  sku                 = "Standard"
+  name                 = "bbn-public-ip"
+  location             = azurerm_resource_group.bbn_rg.location
+  resource_group_name  = azurerm_resource_group.bbn_rg.name
+  allocation_method    = "Static"
+  sku                  = "Standard"
 }
 
 resource "azurerm_network_interface" "bbn_nic" {
-  name                = "bbn-nic"
-  location            = azurerm_resource_group.bbn_rg.location
-  resource_group_name = azurerm_resource_group.bbn_rg.name
+  name                 = "bbn-nic"
+  location             = azurerm_resource_group.bbn_rg.location
+  resource_group_name  = azurerm_resource_group.bbn_rg.name
 
   ip_configuration {
     name                          = "ipconfig1"
@@ -77,7 +77,7 @@ resource "azurerm_network_interface" "bbn_nic" {
 
 resource "azurerm_linux_virtual_machine" "bbn_vm" {
   name                  = "bbn-vm-ubuntu"
-  resource_group_name   = azurerm_resource_group.bbn_rg.name
+  resource_group_name    = azurerm_resource_group.bbn_rg.name
   location              = azurerm_resource_group.bbn_rg.location
   size                  = "Standard_B1s"
   admin_username        = "dsi34"
@@ -108,3 +108,4 @@ resource "azurerm_linux_virtual_machine" "bbn_vm" {
 output "bbn_vm_public_ip" {
   value = azurerm_public_ip.bbn_public_ip.ip_address
 }
+
